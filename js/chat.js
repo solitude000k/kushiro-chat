@@ -50,6 +50,8 @@ function initUI() {
 // ---- ルーム一覧読み込み ----
 // 現在のフィルター状態を保持
 let currentFilter = 'all';
+// 訪問済みルームIDのセット（バッジ管理）
+const visitedRooms = new Set();
 
 function loadRooms(filterCategory = currentFilter) {
   currentFilter = filterCategory;
@@ -64,7 +66,7 @@ function loadRooms(filterCategory = currentFilter) {
     item.className = 'room-item' + (currentRoom?.id === room.id ? ' active' : '');
     item.dataset.roomId = room.id;
     const msgCount = Storage.Messages.getByRoom(room.id).length;
-    const showBadge = msgCount > 0 && currentRoom?.id !== room.id;
+    const showBadge = msgCount > 0 && !visitedRooms.has(room.id);
     const isCreator = room.createdBy === currentUser.name && room.createdBy !== 'system';
     item.innerHTML = `
       <span class="room-icon">${room.icon || '💬'}</span>
@@ -106,6 +108,10 @@ function updateCategoryFilters() {
     btn.textContent = cat;
     container.appendChild(btn);
   });
+  // 現在のフィルター状態を反映
+  container.querySelectorAll('.category-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === currentFilter);
+  });
   // イベントは一度だけここで登録
   container.querySelectorAll('.category-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -119,6 +125,7 @@ function selectRoom(roomId) {
   const room = Storage.Rooms.getById(roomId);
   if (!room) return;
   currentRoom = room;
+  visitedRooms.add(roomId); // 訪問済みとしてマーク（バッジを消す）
 
   // サイドバーのアクティブ更新
   document.querySelectorAll('.room-item').forEach(el => {
