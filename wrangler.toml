@@ -4,4 +4,4 @@ compatibility_flags = [ "nodejs_compat" ]
 
 # 追加：公開する資産（HTMLや画像）があるディレクトリを指定
 # 一番上の階層なら "." または "./"
-pages_build_output_dir = "./"
+pages_build_output_dir = "."
