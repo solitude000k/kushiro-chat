@@ -110,7 +110,7 @@ const Storage = (() => {
     toCSV() {
       return toCSV(
         this.getAll().map(a => ({ ...a, avatarDataUrl: a.avatarDataUrl ? '[IMAGE]' : '' })),
-        ['id', 'email', 'passwordHash', 'nickname', 'color', 'createdAt', 'updatedAt']
+        ['id', 'email', 'passwordHash', 'nickname', 'color', 'verified', 'createdAt', 'updatedAt']
       );
     },
   };

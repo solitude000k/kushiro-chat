@@ -10,9 +10,15 @@ let typingTimer = null;
 let pollTimer = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // セッション確認
+  // セッション確認（未認証・未ログインはログインページへ）
   currentUser = Storage.Session.get();
   if (!currentUser) {
+    window.location.href = 'index.html';
+    return;
+  }
+  if (!currentUser.verified) {
+    alert('メールアドレスが未確認です。認証メールのリンクをクリックしてから再度ログインしてください。');
+    Storage.Session.clear();
     window.location.href = 'index.html';
     return;
   }

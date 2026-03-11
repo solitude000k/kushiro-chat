@@ -1,1 +1,1 @@
-id,email,passwordHash,nickname,color,createdAt,updatedAt
+id,email,passwordHash,nickname,color,verified,createdAt,updatedAt
