@@ -219,7 +219,7 @@ window.Storage = Storage;
 
 // ---- マイグレーション ----
 (function migrate() {
-  const REMOVE_IDS = ['r_003', 'r_004', 'r_005'];
+  const REMOVE_IDS = ['r_002', 'r_003', 'r_004', 'r_005'];
   const rooms = Storage.Rooms.getAll();
   let changed = false;
   const migrated = rooms

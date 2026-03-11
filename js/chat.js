@@ -560,7 +560,6 @@ function setupEventListeners() {
 
   // ユーザーメニュー
   document.getElementById('logout-btn').addEventListener('click', logout);
-  document.getElementById('export-btn').addEventListener('click', exportData);
 
   // モバイル
   document.getElementById('sidebar-toggle')?.addEventListener('click', toggleMobileSidebar);
