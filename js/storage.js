@@ -173,6 +173,9 @@ const Storage = (() => {
       });
       return [...tags];
     },
+    delete(roomId) {
+      this.save(this.getAll().filter(r => r.id !== roomId));
+    },
     toCSV() { return toCSV(this.getAll(), ['id', 'name', 'tags', 'description', 'createdBy', 'icon', 'createdAt']); },
   };
 

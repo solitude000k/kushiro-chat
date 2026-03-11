@@ -228,8 +228,8 @@
   margin-bottom: 3px;
 }
 .message-row.own .message-meta { flex-direction: row-reverse; }
-.message-author { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
-.message-time   { font-size: 0.66rem; color: var(--text-muted); }
+.message-author { font-size: 0.88rem; font-weight: 600; color: var(--text-secondary); }
+.message-time   { font-size: 0.75rem; color: var(--text-muted); }
 
 .message-bubble {
   max-width: 100%;
@@ -249,33 +249,27 @@
   border-bottom-right-radius: 4px;
 }
 .message-row:not(.own) .message-bubble { border-bottom-left-radius: 4px; }
-.message-bubble:hover .message-actions { opacity: 1; }
-.message-actions {
-  position: absolute;
-  top: -28px;
-  right: 0;
-  display: flex;
-  gap: 4px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 3px 6px;
+/* 削除ボタン：バブルの横に常時表示 */
+.msg-delete-btn {
   opacity: 0;
-  transition: opacity var(--transition);
-  pointer-events: none;
-}
-.message-bubble:hover .message-actions { pointer-events: all; }
-.message-action-btn {
+  align-self: center;
+  flex-shrink: 0;
   background: none;
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.75rem;
-  padding: 1px 4px;
-  border-radius: 3px;
-  transition: all var(--transition);
+  padding: 5px;
+  border-radius: var(--radius-sm);
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.message-action-btn:hover { color: var(--amber); background: var(--amber-subtle); }
+.message-row:hover .msg-delete-btn { opacity: 1; }
+.msg-delete-btn:hover {
+  color: #ef5350;
+  background: rgba(239,83,80,0.12);
+}
 
 /* Message media */
 .message-image {
@@ -578,3 +572,26 @@
 @media (min-width: 769px) {
   .header-menu-btn { display: none; }
 }
+
+/* ---- Room delete button ---- */
+.room-delete-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border: none;
+  background: rgba(239,83,80,0.15);
+  color: #ef5350;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition);
+  margin-left: auto;
+  line-height: 1;
+}
+.room-item:hover .room-delete-btn { display: flex; }
+.room-delete-btn:hover { background: rgba(239,83,80,0.35); transform: scale(1.1); }
+
+/* ---- Room creator ---- */
+.room-creator { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 2px; }

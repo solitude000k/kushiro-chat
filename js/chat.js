@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initUI();
+  purgeStaleRooms();        // 72時間更新なし掲示板を自動削除
+  updateCategoryFilters(); // フィルターボタンを先に生成してイベント登録
   loadRooms();
   setupEventListeners();
   // 初期ルーム: なんでも雑談 (r_001) を自動選択
@@ -46,7 +48,11 @@ function initUI() {
 }
 
 // ---- ルーム一覧読み込み ----
-function loadRooms(filterCategory = 'all') {
+// 現在のフィルター状態を保持
+let currentFilter = 'all';
+
+function loadRooms(filterCategory = currentFilter) {
+  currentFilter = filterCategory;
   const rooms = Storage.Rooms.getAll();
   const list = document.getElementById('room-list');
   list.innerHTML = '';
@@ -57,23 +63,36 @@ function loadRooms(filterCategory = 'all') {
     const item = document.createElement('div');
     item.className = 'room-item' + (currentRoom?.id === room.id ? ' active' : '');
     item.dataset.roomId = room.id;
-    // 現在選択中のルームはバッジを表示しない
     const msgCount = Storage.Messages.getByRoom(room.id).length;
     const showBadge = msgCount > 0 && currentRoom?.id !== room.id;
+    const isCreator = room.createdBy === currentUser.name && room.createdBy !== 'system';
     item.innerHTML = `
       <span class="room-icon">${room.icon || '💬'}</span>
       <div class="room-info">
         <div class="room-name truncate">${escapeHtml(room.name)}</div>
+        <div class="room-creator">作成者: ${escapeHtml(room.createdBy === 'system' ? 'システム' : (room.createdBy || '不明'))}</div>
         <div class="room-category">${room.tags ? room.tags.split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('') : ''}</div>
       </div>
       ${showBadge ? `<span class="room-badge">${msgCount > 99 ? '99+' : msgCount}</span>` : ''}
+      ${isCreator ? `<button class="room-delete-btn" data-room-id="${room.id}" title="掲示板を削除">✕</button>` : ''}
     `;
     item.addEventListener('click', () => selectRoom(room.id));
+    // 削除ボタン（クリックイベントをバブリングさせない）
+    const delBtn = item.querySelector('.room-delete-btn');
+    if (delBtn) {
+      delBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteRoom(room.id, room.name);
+      });
+    }
     list.appendChild(item);
   });
 
-  // カテゴリフィルター更新
-  updateCategoryFilters();
+  // フィルターボタンの active 状態だけ更新（ボタン再生成はしない）
+  const container = document.getElementById('category-filters');
+  container.querySelectorAll('.category-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === filterCategory);
+  });
 }
 
 function updateCategoryFilters() {
@@ -87,10 +106,9 @@ function updateCategoryFilters() {
     btn.textContent = cat;
     container.appendChild(btn);
   });
+  // イベントは一度だけここで登録
   container.querySelectorAll('.category-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      container.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
       loadRooms(btn.dataset.cat);
     });
   });
@@ -258,18 +276,21 @@ function renderMessages(messages, container) {
       }
     }
 
-    // 削除ボタン (自分のメッセージのみ)
-    if (isOwn) {
-      content += `
-        <div class="message-actions">
-          <button class="message-action-btn" onclick="deleteMessage('${msg.id}')">🗑</button>
-        </div>`;
-    }
-
     bubble.innerHTML = content;
     bubbleWrap.appendChild(bubble);
 
-    row.appendChild(bubbleWrap);
+    // 削除ボタンをバブルの横に配置（自分のメッセージのみ）
+    if (isOwn) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'msg-delete-btn';
+      delBtn.title = 'メッセージを削除';
+      delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+      delBtn.addEventListener('click', () => deleteMessage(msg.id));
+      row.appendChild(bubbleWrap);
+      row.appendChild(delBtn);
+    } else {
+      row.appendChild(bubbleWrap);
+    }
 
     container.appendChild(row);
     lastUserId = msg.userId;
@@ -426,6 +447,51 @@ function submitNewRoom() {
   loadRooms();
   showToast(`「${name}」を作成しました！`, 'success');
   selectRoom(room.id);
+}
+
+
+// ---- 掲示板削除 ----
+function deleteRoom(roomId, roomName) {
+  if (!confirm(`「${roomName}」を削除しますか？\nメッセージも全て削除されます。`)) return;
+  // メッセージも削除
+  const msgs = Storage.Messages.getAll().filter(m => m.roomId !== roomId);
+  Storage.Messages.save(msgs);
+  Storage.Rooms.delete(roomId);
+  // 削除したルームが選択中なら別ルームへ
+  if (currentRoom?.id === roomId) {
+    currentRoom = null;
+    document.getElementById('chat-main').classList.add('hidden');
+    document.getElementById('no-room-state').classList.remove('hidden');
+  }
+  updateCategoryFilters();
+  loadRooms();
+  showToast(`「${roomName}」を削除しました`, 'success');
+}
+
+// ---- 72時間更新なし掲示板を自動削除 ----
+function purgeStaleRooms() {
+  const EXPIRE_MS = 72 * 60 * 60 * 1000; // 72時間
+  const now = Date.now();
+  const rooms = Storage.Rooms.getAll();
+  const messages = Storage.Messages.getAll();
+
+  const stale = rooms.filter(r => {
+    if (r.createdBy === 'system') return false; // システム掲示板は対象外
+    const roomMsgs = messages.filter(m => m.roomId === r.id);
+    if (roomMsgs.length === 0) {
+      // メッセージなし → 作成から72時間経過で削除
+      return (now - new Date(r.createdAt).getTime()) > EXPIRE_MS;
+    }
+    // 最終メッセージから72時間経過で削除
+    const lastAt = Math.max(...roomMsgs.map(m => new Date(m.createdAt).getTime()));
+    return (now - lastAt) > EXPIRE_MS;
+  });
+
+  if (stale.length === 0) return;
+  const staleIds = new Set(stale.map(r => r.id));
+  Storage.Rooms.save(rooms.filter(r => !staleIds.has(r.id)));
+  Storage.Messages.save(messages.filter(m => !staleIds.has(m.roomId)));
+  console.log(`[purge] ${stale.length}件の掲示板を自動削除しました`);
 }
 
 // ---- ライトボックス ----
