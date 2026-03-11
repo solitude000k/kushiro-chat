@@ -1,0 +1,8 @@
+# Cloudflare Pages リダイレクト設定
+# SPAのルーティングに必要
+
+# APIリクエストはWorkerへプロキシ（同一ドメインでWorkerをルーティングする場合）
+# /api/*  https://kushiro-chat-auth.your-account.workers.dev/api/:splat  200
+
+# 存在しないパスはindex.htmlへフォールバック
+/*  /index.html  200

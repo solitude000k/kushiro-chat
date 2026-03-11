@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f4a620" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#f4a620" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#0a0e1a" stroke="#f4a620" stroke-width="1.5" stroke-opacity="0.4"/>
+  <!-- Glow effect -->
+  <circle cx="100" cy="100" r="60" fill="url(#glow)"/>
+  <!-- Harbor/water waves -->
+  <path d="M30 130 Q50 120 70 130 Q90 140 110 130 Q130 120 150 130 Q160 135 170 130" stroke="#4dd0e1" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M40 145 Q60 135 80 145 Q100 155 120 145 Q140 135 160 145" stroke="#4dd0e1" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <!-- Lighthouse / tower -->
+  <rect x="88" y="55" width="24" height="60" fill="#1a2340" stroke="#f4a620" stroke-width="1"/>
+  <polygon points="76,55 100,35 124,55" fill="#f4a620" opacity="0.9"/>
+  <!-- Light beam -->
+  <path d="M100 45 L50 100 L150 100 Z" fill="#f4a620" opacity="0.08" filter="url(#blur)"/>
+  <!-- Chat bubble dots -->
+  <circle cx="70" cy="95" r="5" fill="#4dd0e1" opacity="0.8"/>
+  <circle cx="100" cy="88" r="5" fill="#f4a620" opacity="0.9"/>
+  <circle cx="130" cy="95" r="5" fill="#4dd0e1" opacity="0.8"/>
+</svg>
