@@ -166,6 +166,13 @@ const Storage = (() => {
       this.save(rooms);
       return room;
     },
+    getCategories() {
+      const tags = new Set();
+      this.getAll().forEach(r => {
+        (r.tags || '').split(',').map(t => t.trim()).filter(Boolean).forEach(t => tags.add(t));
+      });
+      return [...tags];
+    },
     toCSV() { return toCSV(this.getAll(), ['id', 'name', 'tags', 'description', 'createdBy', 'icon', 'createdAt']); },
   };
 

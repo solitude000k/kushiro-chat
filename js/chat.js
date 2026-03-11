@@ -64,7 +64,7 @@ function loadRooms(filterCategory = 'all') {
       <span class="room-icon">${room.icon || '💬'}</span>
       <div class="room-info">
         <div class="room-name truncate">${escapeHtml(room.name)}</div>
-        <div class="room-category">${escapeHtml(room.category)}</div>
+        <div class="room-category">${room.tags ? room.tags.split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('') : ''}</div>
       </div>
       ${showBadge ? `<span class="room-badge">${msgCount > 99 ? '99+' : msgCount}</span>` : ''}
     `;
@@ -514,27 +514,6 @@ function setupEventListeners() {
 
   // 動画添付
   document.getElementById('attach-video-btn').addEventListener('click', () => handleFileSelect('video'));
-
-  // タグボタン
-  document.getElementById('tag-btn').addEventListener('click', () => {
-    const area = document.getElementById('tag-input-area');
-    area.classList.toggle('active');
-    if (area.classList.contains('active')) area.querySelector('.tag-text-input').focus();
-  });
-
-  // タグ入力
-  const tagTextInput = document.getElementById('tag-text-input');
-  tagTextInput?.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTag(tagTextInput.value);
-      tagTextInput.value = '';
-    }
-    if (e.key === 'Backspace' && !tagTextInput.value && pendingTags.length) {
-      pendingTags.pop();
-      renderTagChips();
-    }
-  });
 
   // 新規ルーム
   document.getElementById('new-room-btn').addEventListener('click', openNewRoomModal);
