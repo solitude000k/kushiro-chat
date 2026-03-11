@@ -51,7 +51,7 @@ function loadRooms(filterCategory = 'all') {
   const list = document.getElementById('room-list');
   list.innerHTML = '';
 
-  const filtered = filterCategory === 'all' ? rooms : rooms.filter(r => r.category === filterCategory);
+  const filtered = filterCategory === 'all' ? rooms : rooms.filter(r => (r.tags || '').split(',').map(t=>t.trim()).includes(filterCategory));
 
   filtered.forEach(room => {
     const item = document.createElement('div');
@@ -193,18 +193,10 @@ function renderMessages(messages, container) {
 
     const showMeta = true; // 常に名前・時刻を表示
 
-    // アバター
-    const avatarWrap = document.createElement('div');
-    avatarWrap.className = 'message-avatar-wrap';
-    {
-      const av = document.createElement('div');
-      av.className = 'avatar avatar-sm';
-      const user = isOwn
-        ? { name: currentUser.name, color: currentUser.color, avatarDataUrl: currentUser.avatarDataUrl }
-        : Storage.Users.findByName(msg.userName) || { name: msg.userName, color: '#f4a620', avatarDataUrl: '' };
-      renderAvatar(av, user);
-      avatarWrap.appendChild(av);
-    }
+    // アバター（meta の横に表示するため後で使う）
+    const user = isOwn
+      ? { name: currentUser.name || currentUser.nickname, color: currentUser.color, avatarDataUrl: currentUser.avatarDataUrl }
+      : Storage.Users.findByName(msg.userName) || { name: msg.userName, color: '#f4a620', avatarDataUrl: '' };
 
     // バブル
     const bubbleWrap = document.createElement('div');
@@ -216,10 +208,25 @@ function renderMessages(messages, container) {
     if (showMeta) {
       const meta = document.createElement('div');
       meta.className = 'message-meta';
-      meta.innerHTML = `
-        <span class="message-author">${escapeHtml(msg.userName)}</span>
-        <span class="message-time">${formatTime(date)}</span>
-      `;
+      // アバターをユーザー名の横に配置（DOM操作で安全に構築）
+      const av = document.createElement('div');
+      av.className = 'avatar avatar-xs';
+      renderAvatar(av, user);
+      const authorSpan = document.createElement('span');
+      authorSpan.className = 'message-author';
+      authorSpan.textContent = msg.userName || currentUser.nickname || '?';
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'message-time';
+      timeSpan.textContent = formatTime(date);
+      if (isOwn) {
+        meta.appendChild(timeSpan);
+        meta.appendChild(authorSpan);
+        meta.appendChild(av);
+      } else {
+        meta.appendChild(av);
+        meta.appendChild(authorSpan);
+        meta.appendChild(timeSpan);
+      }
       bubbleWrap.appendChild(meta);
     }
 
@@ -262,13 +269,7 @@ function renderMessages(messages, container) {
     bubble.innerHTML = content;
     bubbleWrap.appendChild(bubble);
 
-    if (!isOwn) {
-      row.appendChild(avatarWrap);
-    }
     row.appendChild(bubbleWrap);
-    if (isOwn) {
-      row.appendChild(avatarWrap);
-    }
 
     container.appendChild(row);
     lastUserId = msg.userId;

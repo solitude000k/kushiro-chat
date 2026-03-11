@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>釧チャ ～ 釧路コミュニティチャット</title>
@@ -411,7 +412,7 @@
         return;
       }
       Storage.Users.upsert(account);
-      Storage.Session.set(account);
+      Storage.Session.set({ ...account, name: account.nickname });
       window.location.href = 'chat.html';
     } catch (e) {
       const isEmail = e.message.includes('Gmail') || e.message.includes('登録');

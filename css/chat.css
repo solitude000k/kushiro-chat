@@ -220,10 +220,10 @@
   padding: 2px 0;
 }
 .message-row.own { flex-direction: row-reverse; }
-.message-avatar-wrap { width: 32px; flex-shrink: 0; }
+.message-avatar-wrap { display: none; }
 .message-meta {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   margin-bottom: 3px;
 }

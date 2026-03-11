@@ -286,6 +286,7 @@ option { background: var(--bg-card); }
   background-size: cover;
   background-position: center;
 }
+.avatar-xs { width: 22px; height: 22px; font-size: 0.6rem; border-width: 1.5px !important; }
 .avatar-sm { width: 36px; height: 36px; font-size: 0.85rem; }
 .avatar-lg { width: 48px; height: 48px; font-size: 1.3rem; }
 
