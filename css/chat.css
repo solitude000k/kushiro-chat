@@ -19,6 +19,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+  height: 60px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 12px rgba(0,0,0,0.4);
@@ -57,6 +58,13 @@
   border-radius: 999px;
   cursor: pointer;
   transition: all var(--transition);
+}
+.header-user .avatar {
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
 }
 .header-user:hover { border-color: var(--border-amber); }
 .header-user-name { font-size: 0.8rem; color: var(--text-secondary); }

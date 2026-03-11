@@ -567,6 +567,26 @@ function setupEventListeners() {
   document.getElementById('sidebar-overlay')?.addEventListener('click', closeMobileSidebar);
 }
 
+// ---- アバター描画 ----
+function renderAvatar(el, user) {
+  const color = user?.color || '#f4a620';
+  el.style.borderColor = color;
+  const imgUrl = user?.avatarDataUrl || '';
+  if (imgUrl) {
+    el.style.backgroundImage = `url(${imgUrl})`;
+    el.style.backgroundSize = 'cover';
+    el.style.backgroundPosition = 'center';
+    el.style.background = `url(${imgUrl}) center/cover`;
+    el.style.color = 'transparent';
+    el.textContent = '';
+  } else {
+    el.style.backgroundImage = '';
+    el.style.background = color + '22';
+    el.style.color = color;
+    el.textContent = (user?.name || user?.nickname || '?').charAt(0).toUpperCase();
+  }
+}
+
 // ---- ユーティリティ ----
 function escapeHtml(str) {
   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };

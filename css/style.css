@@ -282,8 +282,11 @@ option { background: var(--bg-card); }
   flex-shrink: 0;
   border: 2px solid transparent;
   font-family: var(--font-sans);
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
 }
-.avatar-sm { width: 28px; height: 28px; font-size: 0.75rem; }
+.avatar-sm { width: 36px; height: 36px; font-size: 0.85rem; }
 .avatar-lg { width: 48px; height: 48px; font-size: 1.3rem; }
 
 /* ---- Stars / Night particles ---- */

@@ -280,12 +280,15 @@
 <!-- ===== トースト通知 ===== -->
 <div id="toast-container"></div>
 
+<script src="js/config.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/chat.js"></script>
 <script>
   // 追加のUI処理
   document.getElementById('new-room-btn-center')?.addEventListener('click', openNewRoomModal);
   document.getElementById('new-room-cancel-bottom')?.addEventListener('click', closeNewRoomModal);
+  // サイドバーの+ボタン（念のため二重バインド）
+  document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModal);
 
   // ユーザーメニュードロップダウン
   const trigger = document.getElementById('user-menu-trigger');

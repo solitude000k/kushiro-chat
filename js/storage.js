@@ -140,14 +140,19 @@ const Storage = (() => {
   // ============ Rooms ============
   const Rooms = {
     getAll() {
-      const rooms = loadFromStorage(KEYS.ROOMS);
+      let rooms = loadFromStorage(KEYS.ROOMS);
+      const DEFAULT_ROOMS = [
+        { id: 'r_001', name: 'なんでも雑談',  tags: '雑談,日常',        description: '釧路の日常なんでも話しましょう',   createdBy: 'system', icon: '🌊', createdAt: new Date().toISOString() },
+        { id: 'r_002', name: '釧路グルメ情報', tags: 'グルメ,食事,海鮮', description: '美味しいお店や食べ物の情報交換', createdBy: 'system', icon: '🦀', createdAt: new Date().toISOString() },
+      ];
       if (!rooms.length) {
-        const defaults = [
-          { id: 'r_001', name: 'なんでも雑談',  tags: '雑談,日常',        description: '釧路の日常なんでも話しましょう',   createdBy: 'system', icon: '🌊', createdAt: new Date().toISOString() },
-          { id: 'r_002', name: '釧路グルメ情報', tags: 'グルメ,食事,海鮮', description: '美味しいお店や食べ物の情報交換', createdBy: 'system', icon: '🦀', createdAt: new Date().toISOString() },
-        ];
-        saveToStorage(KEYS.ROOMS, defaults);
-        return defaults;
+        saveToStorage(KEYS.ROOMS, DEFAULT_ROOMS);
+        return DEFAULT_ROOMS;
+      }
+      // r_001が存在しなければ先頭に追加
+      if (!rooms.find(r => r.id === 'r_001')) {
+        rooms = [DEFAULT_ROOMS[0], ...rooms];
+        saveToStorage(KEYS.ROOMS, rooms);
       }
       return rooms;
     },

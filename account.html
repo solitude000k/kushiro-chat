@@ -33,7 +33,7 @@
       プロフィール
     </div>
 
-    <div class="profile-card">
+    <div class="profile-card" style="flex-direction:column;align-items:center;">
       <!-- アバター -->
       <div class="avatar-section">
         <div class="avatar-lg-wrap">
@@ -67,12 +67,12 @@
           <label class="form-label">アバターカラー</label>
           <div class="color-picker-row" id="acc-color-picker"></div>
         </div>
-        <div style="display:flex;justify-content:center;margin-top:8px;">
-          <button class="btn btn-primary btn-sm" id="save-profile-btn">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            プロフィールを保存
-          </button>
-        </div>
+      </div>
+      <div style="width:100%;display:flex;justify-content:center;margin-top:16px;">
+        <button class="btn btn-primary btn-sm" id="save-profile-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          プロフィールを保存
+        </button>
       </div>
     </div>
   </section>
@@ -196,6 +196,9 @@
         av.style.background  = c + '22';
         av.style.borderColor = c;
         av.style.color       = c;
+        // 画像アバターの枠色も更新
+        const imgWrap = document.getElementById('acc-avatar-img-wrap');
+        if (imgWrap) imgWrap.style.borderColor = c;
       });
       cp.appendChild(sw);
     });
