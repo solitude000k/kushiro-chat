@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initUI();
   loadRooms();
   setupEventListeners();
+  // 初期ルーム: なんでも雑談 (r_001) を自動選択
+  const defaultRoom = Storage.Rooms.getAll().find(r => r.id === 'r_001') || Storage.Rooms.getAll()[0];
+  if (defaultRoom) selectRoom(defaultRoom.id);
 
   // ポーリング (擬似リアルタイム)
   pollTimer = setInterval(() => {
@@ -38,10 +41,7 @@ function initUI() {
   // ユーザー情報セット
   const avatar = document.getElementById('header-avatar');
   const uname = document.getElementById('header-username');
-  avatar.textContent = currentUser.avatar || currentUser.name.charAt(0).toUpperCase();
-  avatar.style.background = (currentUser.color || '#f4a620') + '22';
-  avatar.style.borderColor = currentUser.color || '#f4a620';
-  avatar.style.color = currentUser.color || '#f4a620';
+  renderAvatar(avatar, currentUser);
   uname.textContent = currentUser.name;
 }
 
@@ -200,11 +200,7 @@ function renderMessages(messages, container) {
       const av = document.createElement('div');
       av.className = 'avatar avatar-sm';
       const user = Storage.Users.findByName(msg.userName);
-      const color = user?.color || '#f4a620';
-      av.style.background = color + '22';
-      av.style.borderColor = color;
-      av.style.color = color;
-      av.textContent = (msg.userName || '?').charAt(0).toUpperCase();
+      renderAvatar(av, user || { name: msg.userName, color: '#f4a620', avatarDataUrl: '' });
       avatarWrap.appendChild(av);
     }
 

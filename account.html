@@ -67,56 +67,17 @@
           <label class="form-label">アバターカラー</label>
           <div class="color-picker-row" id="acc-color-picker"></div>
         </div>
-        <button class="btn btn-primary btn-sm" id="save-profile-btn">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          プロフィールを保存
-        </button>
+        <div style="display:flex;justify-content:center;margin-top:8px;">
+          <button class="btn btn-primary btn-sm" id="save-profile-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            プロフィールを保存
+          </button>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ---- パスワード変更 ---- -->
-  <section class="acc-section">
-    <div class="section-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      パスワード変更
-    </div>
-    <div class="pw-change-form">
-      <div class="form-group">
-        <label class="form-label" for="pw-current">現在のパスワード</label>
-        <div class="input-wrap-rel">
-          <input type="password" id="pw-current" class="form-input" placeholder="現在のパスワード">
-          <button type="button" class="pw-toggle-btn" onclick="togglePwField('pw-current',this)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="pw-new">新しいパスワード</label>
-        <div class="input-wrap-rel">
-          <input type="password" id="pw-new" class="form-input" placeholder="8文字以上" oninput="checkNewPwStrength(this.value)">
-          <button type="button" class="pw-toggle-btn" onclick="togglePwField('pw-new',this)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-        <div style="height:3px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;">
-          <div id="new-pw-fill" style="height:100%;border-radius:2px;width:0;transition:all .3s;"></div>
-        </div>
-        <div id="new-pw-label" style="font-size:.7rem;color:var(--text-muted);margin-top:3px;"></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="pw-new2">新しいパスワード（確認）</label>
-        <div class="input-wrap-rel">
-          <input type="password" id="pw-new2" class="form-input" placeholder="同じパスワードをもう一度">
-          <button type="button" class="pw-toggle-btn" onclick="togglePwField('pw-new2',this)">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="field-error-acc hidden" id="pw-change-err"></div>
-      <button class="btn btn-secondary btn-sm" id="save-pw-btn">パスワードを変更する</button>
-    </div>
-  </section>
+
 
   <!-- ---- 投稿履歴 ---- -->
   <section class="acc-section">
@@ -131,6 +92,49 @@
       <div class="empty-state-sm">
         <span>📭</span> まだ投稿がありません
       </div>
+    </div>
+  </section>
+
+  <!-- ---- パスワード変更 ---- -->
+  <section class="acc-section">
+    <div class="section-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      パスワード変更
+    </div>
+    <div class="pw-change-form" style="display:flex;flex-direction:column;align-items:center;">
+      <div class="form-group" style="width:100%;max-width:360px;">
+        <label class="form-label" for="pw-current">現在のパスワード</label>
+        <div class="input-wrap-rel">
+          <input type="password" id="pw-current" class="form-input" placeholder="現在のパスワード">
+          <button type="button" class="pw-toggle-btn" onclick="togglePwField('pw-current',this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="form-group" style="width:100%;max-width:360px;">
+        <label class="form-label" for="pw-new">新しいパスワード</label>
+        <div class="input-wrap-rel">
+          <input type="password" id="pw-new" class="form-input" placeholder="8文字以上" oninput="checkNewPwStrength(this.value)">
+          <button type="button" class="pw-toggle-btn" onclick="togglePwField('pw-new',this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div style="height:3px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;">
+          <div id="new-pw-fill" style="height:100%;border-radius:2px;width:0;transition:all .3s;"></div>
+        </div>
+        <div id="new-pw-label" style="font-size:.7rem;color:var(--text-muted);margin-top:3px;"></div>
+      </div>
+      <div class="form-group" style="width:100%;max-width:360px;">
+        <label class="form-label" for="pw-new2">新しいパスワード（確認）</label>
+        <div class="input-wrap-rel">
+          <input type="password" id="pw-new2" class="form-input" placeholder="同じパスワードをもう一度">
+          <button type="button" class="pw-toggle-btn" onclick="togglePwField('pw-new2',this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="field-error-acc hidden" id="pw-change-err" style="width:100%;max-width:360px;text-align:center;"></div>
+      <button class="btn btn-secondary btn-sm" id="save-pw-btn" style="margin-top:8px;">パスワードを変更する</button>
     </div>
   </section>
 
