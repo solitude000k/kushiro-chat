@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="0%" r="100%">
+      <stop offset="0%" stop-color="#0d1a35"/>
+      <stop offset="100%" stop-color="#060c18"/>
+    </radialGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="600" height="400" fill="url(#sky)"/>
+  <!-- Stars -->
+  <g fill="white" opacity="0.6">
+    <circle cx="50" cy="30" r="0.8"/><circle cx="120" cy="15" r="1"/><circle cx="200" cy="45" r="0.6"/>
+    <circle cx="280" cy="20" r="0.9"/><circle cx="350" cy="10" r="0.7"/><circle cx="420" cy="35" r="1"/>
+    <circle cx="500" cy="25" r="0.8"/><circle cx="560" cy="50" r="0.6"/><circle cx="90" cy="70" r="0.7"/>
+    <circle cx="160" cy="80" r="0.9"/><circle cx="240" cy="60" r="0.8"/><circle cx="310" cy="75" r="0.6"/>
+    <circle cx="390" cy="65" r="1"/><circle cx="460" cy="80" r="0.7"/><circle cx="540" cy="40" r="0.8"/>
+    <circle cx="30" cy="100" r="0.6"/><circle cx="580" cy="90" r="0.9"/>
+  </g>
+  <!-- Distant city lights -->
+  <g opacity="0.5" filter="url(#glow2)">
+    <rect x="80" y="220" width="3" height="15" fill="#f4a620"/>
+    <rect x="130" y="215" width="2" height="20" fill="#f4a620"/>
+    <rect x="180" y="210" width="4" height="25" fill="#ffd54f"/>
+    <rect x="250" y="205" width="3" height="30" fill="#f4a620"/>
+    <rect x="320" y="215" width="2" height="20" fill="#ffcc02"/>
+    <rect x="400" y="210" width="4" height="25" fill="#f4a620"/>
+    <rect x="460" y="220" width="3" height="15" fill="#ffd54f"/>
+    <rect x="510" y="215" width="2" height="18" fill="#f4a620"/>
+  </g>
+  <!-- Water reflection -->
+  <rect x="0" y="250" width="600" height="150" fill="#06111f" opacity="0.8"/>
+  <!-- Water shimmer -->
+  <g stroke="#4dd0e1" stroke-width="0.5" opacity="0.15">
+    <line x1="0" y1="270" x2="600" y2="270"/>
+    <line x1="0" y1="290" x2="600" y2="290"/>
+    <line x1="0" y1="310" x2="600" y2="310"/>
+    <line x1="0" y1="330" x2="600" y2="330"/>
+    <line x1="0" y1="350" x2="600" y2="350"/>
+    <line x1="0" y1="380" x2="600" y2="380"/>
+  </g>
+  <!-- Light reflections on water -->
+  <g opacity="0.2" filter="url(#glow2)">
+    <ellipse cx="150" cy="300" rx="10" ry="40" fill="#f4a620"/>
+    <ellipse cx="260" cy="310" rx="8" ry="35" fill="#ffd54f"/>
+    <ellipse cx="410" cy="295" rx="10" ry="40" fill="#f4a620"/>
+    <ellipse cx="520" cy="305" rx="7" ry="30" fill="#ffcc02"/>
+  </g>
+</svg>
