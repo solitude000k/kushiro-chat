@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メール確認 — 釧路コミュニティチャット</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body { overflow: hidden; }
+    canvas#star-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .mist {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 35%;
+      background: linear-gradient(to top, rgba(6,20,40,.9) 0%, rgba(10,25,50,.5) 50%, transparent 100%);
+      z-index: 1; pointer-events: none;
+    }
+
+    .verify-page {
+      position: relative; z-index: 10;
+      width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .verify-card {
+      width: 100%; max-width: 420px;
+      background: rgba(14,20,40,.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-amber);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      box-shadow: 0 0 60px rgba(244,166,32,.1), 0 20px 60px rgba(0,0,0,.6);
+      text-align: center;
+    }
+
+    /* ---- States ---- */
+    .state { display: none; flex-direction: column; align-items: center; gap: 16px; }
+    .state.active { display: flex; }
+
+    .state-icon { font-size: 3.5rem; line-height: 1; }
+
+    /* Loading */
+    #state-loading .spinner-lg {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    /* Success */
+    #state-success { }
+    .success-icon-wrap {
+      width: 72px; height: 72px;
+      background: rgba(77,208,225,.1);
+      border: 2px solid var(--cyan);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      animation: pulse-success .6s ease forwards;
+    }
+    @keyframes pulse-success {
+      0%   { transform: scale(.5); opacity: 0; }
+      70%  { transform: scale(1.1); }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    /* Error */
+    #state-error .error-icon-wrap {
+      width: 72px; height: 72px;
+      background: rgba(239,83,80,.1);
+      border: 2px solid #ef5350;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+    }
+
+    .state-title { font-family: var(--font-serif); font-size: 1.3rem; color: var(--amber); }
+    .state-desc  { font-size: .875rem; color: var(--text-secondary); line-height: 1.7; }
+    .state-note  { font-size: .75rem; color: var(--text-muted); }
+    #countdown-num { color: var(--amber); font-weight: 700; }
+
+    .account-badge {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-amber);
+      border-radius: var(--radius-md);
+      width: 100%;
+    }
+    .account-badge-av {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1rem;
+      border: 2px solid;
+      flex-shrink: 0;
+    }
+    .account-badge-info { text-align: left; }
+    .account-badge-name  { font-size: .9rem; color: var(--text-primary); font-weight: 500; }
+    .account-badge-email { font-size: .72rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<div class="mist"></div>
+
+<div class="verify-page">
+  <div class="verify-card fade-in">
+
+    <!-- ロゴ -->
+    <div style="margin-bottom:28px;">
+      <img src="images/logo.svg" alt="ロゴ" style="width:56px;height:56px;animation:pulse-amber 3s ease-in-out infinite;">
+    </div>
+
+    <!-- ローディング -->
+    <div class="state active" id="state-loading">
+      <div class="spinner-lg"></div>
+      <p class="state-title">確認中...</p>
+      <p class="state-desc">メールアドレスを確認しています。<br>しばらくお待ちください。</p>
+    </div>
+
+    <!-- 成功 -->
+    <div class="state" id="state-success">
+      <div class="success-icon-wrap">✓</div>
+      <p class="state-title">認証完了！</p>
+      <div class="account-badge" id="success-badge">
+        <div class="account-badge-av" id="success-av"></div>
+        <div class="account-badge-info">
+          <div class="account-badge-name"  id="success-name"></div>
+          <div class="account-badge-email" id="success-email"></div>
+        </div>
+      </div>
+      <p class="state-desc">メールアドレスの確認が完了しました。<br>釧路コミュニティへようこそ！</p>
+      <p class="state-note"><span id="countdown-num">5</span>秒後に自動でチャットへ移動します</p>
+      <button class="btn btn-primary w-full" style="justify-content:center;" onclick="window.location.href='chat.html'">
+        いますぐチャットへ
+      </button>
+    </div>
+
+    <!-- エラー -->
+    <div class="state" id="state-error">
+      <div class="error-icon-wrap">✕</div>
+      <p class="state-title" style="color:#ef5350;">認証エラー</p>
+      <p class="state-desc" id="error-desc">認証リンクが無効です。</p>
+      <button class="btn btn-secondary w-full" style="justify-content:center;" onclick="window.location.href='index.html'">
+        登録ページへ戻る
+      </button>
+      <div id="resend-section" class="hidden" style="width:100%;">
+        <div class="divider"></div>
+        <p class="state-note" style="margin-bottom:10px;">認証メールを再送しますか？</p>
+        <button class="btn btn-ghost w-full btn-sm" style="justify-content:center;" id="resend-btn">
+          認証メールを再送する
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script>
+  const API_BASE = window.KUSHIRO_API_BASE || 'https://kushiro-chat-auth.solitude000k.workers.dev';
+
+  // ---- ステート切替 ----
+  function showState(id) {
+    document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ---- トークン取得・検証 ----
+  async function verifyToken() {
+    const params = new URLSearchParams(window.location.search);
+    const token  = params.get('token');
+
+    if (!token) {
+      showError('URLにトークンが含まれていません。メール内のリンクをご確認ください。', false);
+      return;
+    }
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/verify/${token}`);
+      const data = await res.json();
+
+      if (!data.ok) {
+        const isExpired = res.status === 410;
+        showError(data.error, isExpired, data.email);
+        return;
+      }
+
+      // 検証成功 → アカウントをlocalStorageに保存
+      const { account } = data;
+      const existing = Storage.Accounts.findByEmail(account.email);
+      let finalAccount;
+      if (existing) {
+        // 既存ならverifiedフラグを更新
+        finalAccount = Storage.Accounts.update(existing.id, { verified: true });
+      } else {
+        // 新規作成
+        finalAccount = {
+          id:           'a_' + Date.now(),
+          email:        account.email,
+          passwordHash: account.passwordHash,
+          nickname:     account.nickname,
+          color:        account.color || '#f4a620',
+          avatarDataUrl: '',
+          verified:     true,
+          createdAt:    new Date().toISOString(),
+          updatedAt:    new Date().toISOString(),
+        };
+        const accounts = Storage.Accounts.getAll();
+        accounts.push(finalAccount);
+        Storage.Accounts.save(accounts);
+      }
+
+      Storage.Users.upsert(finalAccount);
+      Storage.Session.set(finalAccount);
+      showSuccess(finalAccount);
+
+    } catch (err) {
+      console.error(err);
+      showError('サーバーへの接続に失敗しました。サーバーが起動しているか確認してください。', false);
+    }
+  }
+
+  // ---- 成功表示 ----
+  function showSuccess(account) {
+    showState('state-success');
+    const av = document.getElementById('success-av');
+    av.textContent    = account.nickname.charAt(0).toUpperCase();
+    av.style.background   = account.color + '22';
+    av.style.borderColor  = account.color;
+    av.style.color        = account.color;
+    document.getElementById('success-name').textContent  = account.nickname;
+    document.getElementById('success-email').textContent = account.email;
+
+    // カウントダウン → チャットへ
+    let count = 5;
+    const num = document.getElementById('countdown-num');
+    const timer = setInterval(() => {
+      count--;
+      num.textContent = count;
+      if (count <= 0) {
+        clearInterval(timer);
+        window.location.href = 'chat.html';
+      }
+    }, 1000);
+  }
+
+  // ---- エラー表示 ----
+  function showError(msg, showResend = false, email = null) {
+    showState('state-error');
+    document.getElementById('error-desc').textContent = msg;
+    if (showResend && email) {
+      const sec = document.getElementById('resend-section');
+      sec.classList.remove('hidden');
+      document.getElementById('resend-btn').addEventListener('click', () => resendEmail(email));
+    }
+  }
+
+  // ---- 再送 ----
+  async function resendEmail(email) {
+    const btn = document.getElementById('resend-btn');
+    btn.disabled = true;
+    btn.textContent = '送信中...';
+    try {
+      const res  = await fetch(`${API_BASE}/api/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        btn.textContent = '✓ 再送しました';
+        showToast('認証メールを再送しました', 'success');
+      } else {
+        btn.textContent = 'エラー';
+        showToast(data.error, 'error');
+      }
+    } catch {
+      btn.textContent = '接続失敗';
+    }
+  }
+
+  function showToast(msg, type = '') {
+    const ct = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`; t.textContent = msg;
+    ct.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  // ---- 星空 ----
+  (function() {
+    const canvas = document.getElementById('star-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const stars = Array.from({length:100},()=>({
+      x:Math.random()*canvas.width,y:Math.random()*canvas.height*.6,
+      r:Math.random()*1.4+.3,alpha:Math.random()*.7+.3,
+      sp:Math.random()*.003+.001,ph:Math.random()*Math.PI*2
+    }));
+    let t=0;
+    (function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height); t+=.01;
+      stars.forEach(s=>{
+        const a=s.alpha*(.7+.3*Math.sin(t*s.sp*10+s.ph));
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(232,234,246,${a})`;ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    })();
+  })();
+
+  // 実行
+  verifyToken();
+</script>
+</body>
+</html>
