@@ -172,7 +172,9 @@
 
     if (currentAccount.avatarDataUrl) {
       document.getElementById('acc-avatar-img').src = currentAccount.avatarDataUrl;
-      document.getElementById('acc-avatar-img-wrap').classList.remove('hidden');
+      const imgWrap = document.getElementById('acc-avatar-img-wrap');
+      imgWrap.classList.remove('hidden');
+      imgWrap.style.borderColor = currentAccount.color || '#f4a620';
       document.getElementById('acc-avatar').classList.add('hidden');
       document.getElementById('avatar-remove-btn').style.display = 'inline-flex';
     }

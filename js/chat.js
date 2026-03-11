@@ -191,16 +191,18 @@ function renderMessages(messages, container) {
     row.className = `message-row${isOwn ? ' own' : ''}`;
     row.dataset.msgId = msg.id;
 
-    const showMeta = !isSameUser || lastDate !== dateStr;
+    const showMeta = true; // 常に名前・時刻を表示
 
     // アバター
     const avatarWrap = document.createElement('div');
     avatarWrap.className = 'message-avatar-wrap';
-    if (!isSameUser) {
+    {
       const av = document.createElement('div');
       av.className = 'avatar avatar-sm';
-      const user = Storage.Users.findByName(msg.userName);
-      renderAvatar(av, user || { name: msg.userName, color: '#f4a620', avatarDataUrl: '' });
+      const user = isOwn
+        ? { name: currentUser.name, color: currentUser.color, avatarDataUrl: currentUser.avatarDataUrl }
+        : Storage.Users.findByName(msg.userName) || { name: msg.userName, color: '#f4a620', avatarDataUrl: '' };
+      renderAvatar(av, user);
       avatarWrap.appendChild(av);
     }
 
@@ -305,8 +307,6 @@ function sendMessage() {
   pendingMedia = [];
   pendingTags = [];
   renderPreviews();
-  renderTagChips();
-  document.getElementById('tag-input-area').classList.remove('active');
 
   refreshMessages(true);
   loadRooms(); // バッジ更新
@@ -367,16 +367,7 @@ function removeMedia(idx) {
 
 // ---- タグ管理 ----
 function renderTagChips() {
-  const area = document.getElementById('tag-input-area');
-  const existingChips = area.querySelectorAll('.tag-chip');
-  existingChips.forEach(c => c.remove());
-
-  pendingTags.forEach((tag, idx) => {
-    const chip = document.createElement('div');
-    chip.className = 'tag-chip';
-    chip.innerHTML = `${escapeHtml(tag)}<button onclick="removeTag(${idx})">×</button>`;
-    area.insertBefore(chip, area.querySelector('.tag-text-input'));
-  });
+  // tag-input-area は削除済みのため何もしない
 }
 
 function removeTag(idx) {
