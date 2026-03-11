@@ -12,5 +12,5 @@
  *   window.KUSHIRO_API_BASE = 'https://api.your-domain.com';
  */
 
-window.KUSHIRO_API_BASE   = 'https://kushiro-chat.preview-me.workers.dev/';
-window.KUSHIRO_API_SECRET = 're_X7VXMFvh_JnFKpvhjxAyhKjb7N7hrBreq';  // Workers側でAPI_SECRETを設定した場合はここに同じ値を入力
+window.KUSHIRO_API_BASE   = 'https://kushiro-chat-auth.your-account.workers.dev';
+window.KUSHIRO_API_SECRET = '';  // Workers側でAPI_SECRETを設定した場合はここに同じ値を入力

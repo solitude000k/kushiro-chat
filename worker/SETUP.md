@@ -17,7 +17,7 @@ Resend            → メール送信 (無料3000通/月)
 
 1. [https://resend.com](https://resend.com) でアカウント作成（無料）
 2. ダッシュボード → **API Keys** → `+ Create API Key`
-3. 生成されたキー（`re_X7VXMFvh_JnFKpvhjxAyhKjb7N7hrBreq`）をメモ
+3. 生成されたキー（`re_xxxx...`）をメモ
 
 > **送信元メールアドレスについて**
 > - **テスト用（無料）**: `onboarding@resend.dev` → 自分のアカウントメールにしか送れません

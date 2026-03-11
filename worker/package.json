@@ -4,13 +4,12 @@
   "description": "釧路コミュニティチャット メール認証 Cloudflare Worker",
   "private": true,
   "scripts": {
-    "dev":    "wrangler dev",
+    "setup":  "node setup.js",
     "deploy": "wrangler deploy",
-    "logs":   "wrangler tail",
-    "kv:create":         "wrangler kv namespace create TOKENS",
-    "kv:create:preview": "wrangler kv namespace create TOKENS --preview"
+    "dev":    "wrangler dev",
+    "logs":   "wrangler tail"
   },
   "devDependencies": {
-    "wrangler": "^3.68.0"
+    "wrangler": "^4.0.0"
   }
 }
