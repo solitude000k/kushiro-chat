@@ -54,6 +54,20 @@
       display: flex; align-items: center; gap: 8px;
     }
 
+    /* ===== スマホ対応 ===== */
+    @media (max-width: 600px) {
+      .top-header { padding: 0 12px; height: 52px; }
+      .header-brand img { width: 28px; height: 28px; }
+      .header-brand-text { font-size: .9rem; }
+      .header-brand-sub { display: none; }
+      .header-nav { gap: 1px; }
+      .nav-link { padding: 5px 7px; gap: 0; }
+      .nav-link span { display: none; }
+      .nav-link svg { width: 18px; height: 18px; }
+      .header-auth { gap: 4px; }
+      .header-auth .btn { padding: 5px 9px; font-size: .72rem; }
+    }
+
     /* ===== ヒーロー ===== */
     .hero {
       position: relative; min-height: 100vh;
