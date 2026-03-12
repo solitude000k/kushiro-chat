@@ -342,7 +342,7 @@ function openNewRoomModal() {
   document.getElementById('new-room-modal')?.classList.add('active');
 }
 function closeNewRoomModal() {
-  closeNewRoomModal();
+  document.getElementById('new-room-modal')?.classList.remove('active');
 }
 
 // ---- 掲示板作成 ----
