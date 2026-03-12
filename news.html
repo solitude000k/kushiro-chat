@@ -188,6 +188,19 @@
     .news-item-detail {
       font-size: .82rem; color: var(--text-secondary); line-height: 1.8;
     }
+    /* 箇条書き bullets */
+    .news-item-bullets {
+      margin: 6px 0 0 0; padding: 0;
+      list-style: none; display: flex; flex-direction: column; gap: 4px;
+    }
+    .news-item-bullets li {
+      display: flex; align-items: flex-start; gap: 6px;
+      font-size: .8rem; color: var(--text-secondary); line-height: 1.6;
+    }
+    .news-item-bullets li::before {
+      content: '›'; color: var(--cyan); font-weight: 700;
+      flex-shrink: 0; margin-top: 1px;
+    }
 
     /* ===== スケルトン ===== */
     .skeleton {
@@ -530,6 +543,29 @@ const FIXED_CATS = [
   { key: '補足',                   icon: '📌', label: '補足',              sub: '' },
 ];
 
+// detail / bullets を行分けレンダリング
+function renderDetail(item) {
+  // bullets配列がある場合（新パーサー出力）
+  const bullets = Array.isArray(item.bullets) && item.bullets.length
+    ? item.bullets
+    : null;
+
+  // bullets がない場合は detail テキストを句点で分割
+  const lines = bullets
+    ? bullets
+    : (item.detail || '').split(/(?<=。|！|？)\s*|。\s*/).filter(s => s.trim().length > 1);
+
+  if (!lines.length) return '';
+
+  const liHtml = lines
+    .map(s => s.replace(/。$/, '').trim())
+    .filter(Boolean)
+    .map(s => `<li>${highlightText(stripMd(s))}</li>`)
+    .join('');
+
+  return liHtml ? `<ul class="news-item-bullets">${liHtml}</ul>` : '';
+}
+
 function renderNews(data) {
   const area = document.getElementById('news-content');
   const rawSections = data.sections || [];
@@ -585,7 +621,7 @@ function renderNews(data) {
               ${item.time ? `<span class="time-badge">🕐 ${escHtml(item.time)}</span>` : ''}
               <span class="news-item-title-text">${highlightText(stripMd(item.title))}</span>
             </div>
-            ${item.detail ? `<p class="news-item-detail">${highlightText(stripMd(item.detail))}</p>` : ''}
+            ${renderDetail(item)}
           </div>`;
       });
     }
