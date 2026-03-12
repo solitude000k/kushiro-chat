@@ -211,12 +211,17 @@ const API = (() => {
     });
   }
 
+  async function getPublicProfile(accountId) {
+    return req('GET', `/api/public-profile/${encodeURIComponent(accountId)}`);
+  }
+
   return {
     login, adminVerify, isAdminTokenValid, adminAction,
     getMyAccount, checkUserId, listAccounts, updateAccount, deleteAccount, adminDeleteAccount, adminSetup,
     listRooms, createRoom, deleteRoom,
     listMessages, postMessage, deleteMessage, adminDeleteMessage,
     getDMConversations, getDMThread, sendDM, markDMRead, deleteDM,
+    getPublicProfile,
   };
 })();
 

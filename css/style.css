@@ -615,3 +615,56 @@ body::before {
   .btn { min-height: 40px; }
   .btn-icon { min-width: 36px; min-height: 36px; }
 }
+
+/* ================================================================
+   モバイル認証ボタン（ドアアイコン＋ドロップダウン）
+================================================================ */
+.auth-icon-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-amber);
+  border-radius: var(--radius-sm);
+  color: var(--amber);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition);
+}
+.auth-icon-btn:hover { background: var(--bg-elevated); }
+
+.auth-dropdown {
+  display: none;
+  position: absolute;
+  top: 54px; right: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-amber);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  min-width: 148px;
+  box-shadow: var(--shadow-md);
+  z-index: 300;
+  flex-direction: column;
+  gap: 2px;
+}
+.auth-dropdown.open { display: flex; }
+
+.auth-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  transition: background var(--transition), color var(--transition);
+}
+.auth-dropdown-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.auth-dropdown-item:first-child { color: var(--amber); }
+
+@media (max-width: 600px) {
+  .auth-btn-pc  { display: none !important; }
+  .auth-icon-btn { display: flex; }
+}

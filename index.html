@@ -217,9 +217,18 @@
       .header-brand-sub  { display: none; }
       .header-brand img  { width: 28px; height: 28px; }
       .header-auth { gap: 4px; }
-      .header-auth .btn  { font-size: .72rem; padding: 5px 9px; }
     }
 </style>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('auth-icon-btn');
+    const dd  = document.getElementById('auth-dropdown');
+    if (btn && dd) {
+      btn.addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+      document.addEventListener('click', () => dd.classList.remove('open'));
+    }
+  });
+</script>
 </head>
 <body>
 
@@ -257,8 +266,26 @@
     </div>
   </div>
   <div class="header-auth" id="header-auth">
-    <a href="login.html" class="btn btn-ghost" style="font-size:.82rem;padding:6px 16px;">ログイン</a>
-    <a href="login.html#register" class="btn btn-primary" style="font-size:.82rem;padding:6px 16px;">新規登録</a>
+    <!-- PC: ボタン表示 -->
+    <a href="login.html" class="btn btn-ghost auth-btn-pc" style="font-size:.82rem;padding:6px 16px;">ログイン</a>
+    <a href="login.html#register" class="btn btn-primary auth-btn-pc" style="font-size:.82rem;padding:6px 16px;">新規登録</a>
+    <!-- スマホ: ドアアイコン -->
+    <button class="auth-icon-btn" id="auth-icon-btn" aria-label="ログイン・新規登録">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+    </button>
+    <div class="auth-dropdown" id="auth-dropdown">
+      <a href="login.html" class="auth-dropdown-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        ログイン
+      </a>
+      <a href="login.html#register" class="auth-dropdown-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        新規登録
+      </a>
+    </div>
   </div>
 </header>
 

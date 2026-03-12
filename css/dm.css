@@ -365,7 +365,8 @@
   .dm-input { font-size: 16px; padding: 8px 12px; } /* iOSズーム防止 */
 
   /* DM バブル */
-  .dm-bubble { max-width: 88%; font-size: .85rem; }
+  .dm-bubble-wrap { max-width: 70vw; }
+  .dm-bubble { max-width: 100%; font-size: .85rem; }
   .dm-messages { padding: 10px; }
 
   /* ヘッダー */

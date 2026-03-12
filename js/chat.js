@@ -193,10 +193,9 @@ async function refreshMessages() {
     row.className = `message-row${isOwn ? ' own' : ''}`;
     row.dataset.msgId = msg.id;
 
-    // 初回表示のみアニメーション、既表示は静的に
-    if (renderedMsgIds.has(msg.id)) {
-      row.style.opacity = '1';
-      row.style.animation = 'none';
+    // 初回表示のみアニメーション付与
+    if (!renderedMsgIds.has(msg.id)) {
+      row.classList.add('msg-animate');
     }
     renderedMsgIds.add(msg.id);
 
@@ -497,26 +496,29 @@ function setupEventListeners() {
 
 // ---- プロフィールモーダル ----
 async function showUserProfile(userId) {
-  // D1からアカウント情報を取得 (adminなら listAccounts、一般はメッセージから)
-  // フォールバック: メッセージ内のユーザー情報を使用
   let profile = null;
   if (isAdmin) {
     const res = await API.listAccounts().catch(() => ({}));
     profile = (res.accounts || []).find(a => a.id === userId || a.userId === userId);
   }
+  // 公開プロフィールAPIで取得（一般ユーザーも正しいuserIdを取得）
+  if (!profile) {
+    const res = await API.getPublicProfile(userId).catch(() => ({}));
+    if (res.ok && res.profile) {
+      profile = res.profile;
+    }
+  }
   // フォールバック: 表示中メッセージから探す
   if (!profile) {
-    const msgs = document.querySelectorAll(`.message-row[data-msg-id]`);
-    // 現在のメッセージから uid が一致するものを探してアバター情報を収集
     const res = await API.listMessages(currentRoom?.id || '');
     const msg = (res.messages || []).find(m => m.userId === userId);
     if (msg) {
       profile = {
-        id:           msg.userId,
-        userId:       msg.userId,
-        nickname:     msg.userName,
-        color:        msg.userColor || '#f4a620',
-        avatarDataUrl:msg.userAvatar || '',
+        id:            msg.userId,
+        userId:        msg.userIdDisplay || msg.userId,
+        nickname:      msg.userName,
+        color:         msg.userColor || '#f4a620',
+        avatarDataUrl: msg.userAvatar || '',
       };
     }
   }
