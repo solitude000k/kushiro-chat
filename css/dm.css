@@ -14,7 +14,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  margin-top: 52px; /* app-header の高さ */
+  margin-top: 60px; /* app-header の高さ */
 }
 
 /* ---- サイドバー ---- */
