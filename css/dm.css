@@ -14,7 +14,6 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  margin-top: 60px; /* app-header の高さ */
 }
 
 /* ---- サイドバー ---- */
@@ -349,8 +348,6 @@
    DM RESPONSIVE OVERHAUL
 ================================================================ */
 @media (max-width: 600px) {
-  .dm-body { height: calc(100dvh - 54px); } /* 54px = モバイルヘッダー高さ */
-
   /* サイドバー */
   .dm-sidebar { width: 100%; top: 54px; }
   .dm-sidebar-header { padding: 12px 14px; font-size: .85rem; }
