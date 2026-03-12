@@ -55,6 +55,10 @@ const API = (() => {
   // ================================================================
   // アカウント
   // ================================================================
+  async function getMyAccount() {
+    return req('GET', '/api/accounts/me');
+  }
+
   async function checkUserId(userId) {
     return req('GET', `/api/check-userid?userId=${encodeURIComponent(userId)}`);
   }
@@ -209,7 +213,7 @@ const API = (() => {
 
   return {
     login, adminVerify, isAdminTokenValid, adminAction,
-    checkUserId, listAccounts, updateAccount, deleteAccount, adminDeleteAccount, adminSetup,
+    getMyAccount, checkUserId, listAccounts, updateAccount, deleteAccount, adminDeleteAccount, adminSetup,
     listRooms, createRoom, deleteRoom,
     listMessages, postMessage, deleteMessage, adminDeleteMessage,
     getDMConversations, getDMThread, sendDM, markDMRead, deleteDM,
