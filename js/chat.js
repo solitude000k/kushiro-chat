@@ -406,10 +406,13 @@ function setupEventListeners() {
   document.getElementById('attach-image-btn')?.addEventListener('click', () => handleFileSelect('image'));
 
   // ヘッダー ドロップダウン
-  const trigger = document.getElementById('user-menu-trigger');
+  const trigger  = document.getElementById('user-menu-trigger');
   const dropdown = document.getElementById('user-dropdown');
-  trigger?.addEventListener('click', e => { e.stopPropagation(); dropdown?.classList.toggle('show'); });
-  document.addEventListener('click', () => dropdown?.classList.remove('show'));
+  trigger?.addEventListener('click', e => {
+    e.stopPropagation();
+    dropdown?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => dropdown?.classList.add('hidden'));
 
   // ログアウト
   document.getElementById('logout-btn')?.addEventListener('click', () => {

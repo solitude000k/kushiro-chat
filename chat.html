@@ -269,27 +269,9 @@
 <script src="js/api.js"></script>
 <script src="js/chat.js"></script>
 <script>
-  // 追加のUI処理
   document.getElementById('new-room-btn-center')?.addEventListener('click', openNewRoomModal);
   document.getElementById('new-room-cancel-bottom')?.addEventListener('click', closeNewRoomModal);
-  // サイドバーの+ボタン（念のため二重バインド）
   document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModal);
-
-  // ユーザーメニュードロップダウン
-  const trigger = document.getElementById('user-menu-trigger');
-  const dropdown = document.getElementById('user-dropdown');
-  trigger?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdown.classList.toggle('hidden');
-  });
-  document.addEventListener('click', () => dropdown?.classList.add('hidden'));
-
-  // メッセージ数カウント更新
-  setInterval(() => {
-    const total = Storage.Messages.getAll().length;
-    const el = document.getElementById('sidebar-msg-count');
-    if (el) el.textContent = total > 0 ? `総メッセージ数: ${total}` : '';
-  }, 5000);
 </script>
 
 </body>
