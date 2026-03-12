@@ -247,7 +247,8 @@
 
       <div class="form-group">
         <label class="form-label" for="new-room-desc">説明</label>
-        <textarea id="new-room-desc" class="form-textarea" placeholder="この掲示板について説明してください" rows="2" maxlength="200" oninput="sanitizeTextInput(this)"></textarea>
+        <textarea id="new-room-desc" class="form-textarea" placeholder="この掲示板について説明してください" rows="2" maxlength="100" oninput="sanitizeTextInput(this);document.getElementById('desc-count').textContent=this.value.length"></textarea>
+        <p style="font-size:.72rem;color:var(--text-muted);margin-top:4px;text-align:right;"><span id="desc-count">0</span>/100文字</p>
       </div>
 
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">

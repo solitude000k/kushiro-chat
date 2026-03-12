@@ -614,11 +614,9 @@ function sanitizeTextInput(el) {
 function sanitizeTagInput(el) {
   // 特殊文字を除去（カンマは許可）
   el.value = el.value.replace(/[<>&"'`\\{}()\[\]=;]/g, '');
-  // コンマを最大2個に制限
-  const parts = el.value.split(',');
-  if (parts.length > 3) {
-    el.value = parts.slice(0, 3).join(',');
-  }
+  // コンマ最大2個・各タグ6文字以内に制限
+  const parts = el.value.split(',').slice(0, 3).map(p => p.slice(0, 6));
+  el.value = parts.join(el.value.includes(',') ? ',' : '').replace(/,+$/, el.value.endsWith(',') ? ',' : '');
   // カウント更新
   const countEl = document.getElementById('tag-count');
   if (countEl) {
