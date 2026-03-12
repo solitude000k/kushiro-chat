@@ -516,7 +516,7 @@
       showVerifyWaiting(email);
 
     } catch (e) {
-      const msg = e.message.includes('fetch') ? 'サーバーに接続できません。サーバーが起動しているか確認してください。' : e.message;
+      const msg = e.message.includes('fetch') ? 'サーバーに接続できません。しばらく待ってから再度お試しください。' : e.message;
       showField('reg-email-err', msg);
       setLoading('register-btn', false);
       document.getElementById('register-btn').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> アカウントを作成して参加';
