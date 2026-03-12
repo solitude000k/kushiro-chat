@@ -51,7 +51,7 @@
 
 /* ---- Reset & Base ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; scroll-behavior: smooth; }
+html { font-size: 17.5px; scroll-behavior: smooth; }
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-deep);
@@ -340,4 +340,177 @@ option { background: var(--bg-card); }
 @media (max-width: 768px) {
   h1 { font-size: 1.6rem; }
   .modal { padding: 24px 20px; }
+}
+
+/* ================================================================
+   DYNAMIC EFFECTS - 動的エフェクト
+================================================================ */
+
+/* ---- ページ読み込みフェード ---- */
+body { animation: bodyReveal 0.5s ease forwards; }
+@keyframes bodyReveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---- オーロラ背景グラデーション ---- */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(77,208,225,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(244,166,32,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 50% 50%, rgba(77,208,225,0.02) 0%, transparent 70%);
+  animation: auroraDrift 18s ease-in-out infinite alternate;
+}
+@keyframes auroraDrift {
+  0%   { transform: scale(1) translate(0,0); opacity: 0.6; }
+  33%  { transform: scale(1.05) translate(2%, -1%); opacity: 1; }
+  66%  { transform: scale(0.98) translate(-1%, 2%); opacity: 0.7; }
+  100% { transform: scale(1.03) translate(1%, 1%); opacity: 0.9; }
+}
+
+/* ---- スクロールリビール ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s cubic-bezier(0.22,1,0.36,1),
+              transform 0.55s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+
+/* ---- ポップアップテキスト ---- */
+.pop-in {
+  opacity: 0;
+  transform: scale(0.85) translateY(10px);
+  animation: popIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes popIn {
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pop-in-delay-1 { animation-delay: 0.1s; }
+.pop-in-delay-2 { animation-delay: 0.2s; }
+.pop-in-delay-3 { animation-delay: 0.32s; }
+.pop-in-delay-4 { animation-delay: 0.46s; }
+
+/* ---- グリッチタイトル光彩 ---- */
+.glow-title {
+  position: relative;
+  text-shadow:
+    0 0 20px rgba(244,166,32,0.4),
+    0 0 60px rgba(244,166,32,0.15);
+  animation: glowPulse 4s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%,100% { text-shadow: 0 0 20px rgba(244,166,32,0.4), 0 0 60px rgba(244,166,32,0.15); }
+  50%      { text-shadow: 0 0 30px rgba(244,166,32,0.6), 0 0 80px rgba(244,166,32,0.25), 0 0 120px rgba(77,208,225,0.1); }
+}
+
+/* ---- ヘッダーボーダーアニメーション ---- */
+.top-header, header {
+  border-bottom-color: transparent !important;
+  position: relative;
+}
+.top-header::after, header.top-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(77,208,225,0.3) 20%,
+    rgba(244,166,32,0.5) 50%,
+    rgba(77,208,225,0.3) 80%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: headerLine 6s linear infinite;
+}
+@keyframes headerLine {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ---- カードホバーリフト ---- */
+.card, .news-item, .room-card {
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.22s ease,
+              border-color 0.22s ease !important;
+}
+.card:hover, .news-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(244,166,32,0.1) !important;
+}
+
+/* ---- ボタン波紋エフェクト ---- */
+.btn { position: relative; overflow: hidden; }
+.btn::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  opacity: 0; transform: scale(0);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.btn:active::after { transform: scale(2); opacity: 1; transition: none; }
+
+/* ---- パーティクルキャンバス ---- */
+#fx-canvas {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+  opacity: 0.6;
+}
+
+/* ---- ナビリンクアンダーライン ---- */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: '';
+  position: absolute; bottom: -2px; left: 50%; right: 50%;
+  height: 2px; border-radius: 2px;
+  background: var(--amber);
+  transition: left 0.25s ease, right 0.25s ease;
+}
+.nav-link:hover::after, .nav-link.active::after {
+  left: 8px; right: 8px;
+}
+
+/* ---- スタッガードリスト ---- */
+.stagger-list > * {
+  opacity: 0;
+  transform: translateX(-12px);
+  animation: staggerIn 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes staggerIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- ページタイトルスライドイン ---- */
+.page-title {
+  opacity: 0;
+  animation: titleSlide 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s forwards;
+}
+@keyframes titleSlide {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.page-eyebrow {
+  opacity: 0;
+  animation: eyebrowFade 0.5s ease 0.05s forwards;
+}
+@keyframes eyebrowFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-desc, .page-desc-sub {
+  opacity: 0;
+  animation: descFade 0.5s ease 0.3s forwards;
+}
+@keyframes descFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

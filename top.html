@@ -463,7 +463,8 @@
   <p>🌊 <strong style="color:var(--amber);">釧チャ</strong> ─ 釧路コミュニティチャット</p>
   <p style="margin-top:6px;">北海道釧路市・釧路町の地域住民向けコミュニティプラットフォーム</p>
   <p style="margin-top:10px; font-size:.68rem; color:rgba(255,255,255,0.25);">
-    <a href="index.html">ログイン</a> ／ <a href="chat.html">掲示板</a> ／ <a href="news.html">ニュース</a>
+    <a href="index.html">ログイン</a> ／ <a href="chat.html">掲示板</a>
+      <a href="dm.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>DM</a> ／ <a href="news.html">ニュース</a>
   </p>
 </footer>
 
@@ -498,9 +499,11 @@
       <a href="account.html" class="btn btn-ghost" style="font-size:.82rem;padding:6px 16px;">
         ${sess.nickname || sess.name || 'アカウント'}
       </a>
-      <a href="chat.html" class="btn btn-primary" style="font-size:.82rem;padding:6px 16px;">掲示板へ</a>`;
+      <a href="chat.html" class="btn btn-primary" style="font-size:.82rem;padding:6px 16px;">掲示板へ</a>
+      <a href="dm.html" class="nav-link"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>DM</a>`;
   }
 })();
 </script>
+  <script src="js/effects.js"></script>
 </body>
 </html>
