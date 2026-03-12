@@ -131,9 +131,14 @@ const Storage = (() => {
       const idx = users.findIndex(u => u.id === account.id);
       const rec = {
         id: account.id, name: account.nickname,
+        userId: account.userId || '',
         avatar: account.nickname.charAt(0).toUpperCase(),
         avatarDataUrl: account.avatarDataUrl || '',
         color: account.color, createdAt: account.createdAt,
+        bio:   account.bio   || '',
+        xUrl:  account.xUrl  || '',
+        igUrl: account.igUrl || '',
+        fbUrl: account.fbUrl || '',
       };
       if (idx >= 0) users[idx] = rec; else users.push(rec);
       this.save(users);

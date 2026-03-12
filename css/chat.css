@@ -595,3 +595,51 @@
 
 /* ---- Room creator ---- */
 .room-creator { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 2px; }
+
+/* ---- User Profile Modal ---- */
+.user-profile-modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.user-profile-modal-overlay.active { display: flex; }
+
+.user-profile-modal-card {
+  background: var(--bg-secondary, #0f1525);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 24px;
+  width: 300px;
+  max-width: 90vw;
+  position: relative;
+  animation: modal-in .18s ease;
+}
+@keyframes modal-in {
+  from { opacity:0; transform:scale(.94) translateY(8px); }
+  to   { opacity:1; transform:scale(1)  translateY(0); }
+}
+
+.user-profile-close {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(255,255,255,0.06);
+  border: none; border-radius: 50%;
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-muted);
+}
+.user-profile-close:hover { background: rgba(255,255,255,0.12); }
+
+.profile-sns-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.profile-sns-btn:hover { background: rgba(255,255,255,0.14); color: var(--text-primary); }
