@@ -735,3 +735,18 @@
   /* メッセージグループ */
   .messages-container { padding: 10px; }
 }
+
+/* ---- 72時間自動削除注意書き ---- */
+.auto-delete-notice-mobile { display: none; }
+
+@media (max-width: 600px) {
+  .auto-delete-notice { display: none; }
+  .auto-delete-notice-mobile {
+    display: block;
+    text-align: center;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    padding-top: 6px;
+  }
+}
