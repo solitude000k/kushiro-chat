@@ -233,7 +233,12 @@
     const res = await API.getMyAccount().catch(() => ({ ok: false }));
     if (res.ok && res.account) {
       currentAccount = { ...currentAccount, ...res.account };
-      Storage.Session.set({ ...Storage.Session.get(), ...res.account });
+      // name と nickname を統一
+      if (!currentAccount.nickname) currentAccount.nickname = currentAccount.name || '';
+      Storage.Session.set({ ...Storage.Session.get(), ...currentAccount });
+    } else {
+      // フォールバック: セッションの name を nickname に補完
+      if (!currentAccount.nickname) currentAccount.nickname = currentAccount.name || '';
     }
 
     renderProfile();

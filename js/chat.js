@@ -147,7 +147,7 @@ async function selectRoom(roomId) {
   document.getElementById('chat-room-desc').textContent  = room.description || '';
   document.getElementById('chat-main').classList.remove('hidden');
   document.getElementById('no-room-state').classList.add('hidden');
-  document.getElementById('chat-input').focus();
+  document.getElementById('message-input').focus();
 
   await refreshMessages();
 }
@@ -157,8 +157,8 @@ async function refreshMessages() {
   if (!currentRoom) return;
   const res      = await API.listMessages(currentRoom.id);
   const messages = res.messages || [];
-  const container = document.getElementById('message-list');
-  const scrollEl  = document.getElementById('chat-messages');
+  const container = document.getElementById('messages-container');
+  const scrollEl  = document.getElementById('messages-container');
   const atBottom  = scrollEl.scrollHeight - scrollEl.scrollTop <= scrollEl.clientHeight + 80;
 
   container.innerHTML = '';
@@ -259,7 +259,7 @@ async function refreshMessages() {
 // ---- メッセージ送信 ----
 async function sendMessage() {
   if (!currentRoom) return;
-  const input = document.getElementById('chat-input');
+  const input = document.getElementById('message-input');
   const text  = input.value.trim();
   if (!text && !pendingMedia.length) return;
 
@@ -314,7 +314,7 @@ function handleFileSelect(type) {
 }
 
 function renderMediaPreview() {
-  const preview = document.getElementById('media-preview');
+  const preview = document.getElementById('input-previews');
   if (!preview) return;
   preview.innerHTML = '';
   if (!pendingMedia.length) { preview.style.display = 'none'; return; }
@@ -337,6 +337,14 @@ function renderMediaPreview() {
   });
 }
 
+// ---- 掲示板作成モーダル ----
+function openNewRoomModal() {
+  document.getElementById('new-room-modal')?.classList.add('active');
+}
+function closeNewRoomModal() {
+  closeNewRoomModal();
+}
+
 // ---- 掲示板作成 ----
 async function createRoom() {
   const name = document.getElementById('new-room-name')?.value.trim();
@@ -348,7 +356,7 @@ async function createRoom() {
   const res = await API.createRoom({ name, tags, description: desc, icon });
   if (!res.ok) { showToast(res.error || '作成に失敗しました', 'error'); return; }
 
-  document.getElementById('create-room-modal')?.classList.remove('active');
+  closeNewRoomModal();
   ['new-room-name','new-room-tags','new-room-desc'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -391,7 +399,7 @@ async function _afterRoomDelete(roomId, roomName) {
 function setupEventListeners() {
   // 送信
   document.getElementById('send-btn')?.addEventListener('click', sendMessage);
-  const input = document.getElementById('chat-input');
+  const input = document.getElementById('message-input');
   if (input) {
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -421,13 +429,9 @@ function setupEventListeners() {
   });
 
   // 掲示板作成モーダル
-  document.getElementById('create-room-btn')?.addEventListener('click', () => {
-    document.getElementById('create-room-modal')?.classList.add('active');
-  });
-  document.getElementById('cancel-room-btn')?.addEventListener('click', () => {
-    document.getElementById('create-room-modal')?.classList.remove('active');
-  });
-  document.getElementById('submit-room-btn')?.addEventListener('click', createRoom);
+  document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModal);
+  document.getElementById('new-room-cancel')?.addEventListener('click', closeNewRoomModal);
+  document.getElementById('new-room-submit')?.addEventListener('click', createRoom);
 }
 
 // ---- プロフィールモーダル ----

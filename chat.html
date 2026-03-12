@@ -269,9 +269,11 @@
 <script src="js/api.js"></script>
 <script src="js/chat.js"></script>
 <script>
-  document.getElementById('new-room-btn-center')?.addEventListener('click', openNewRoomModal);
-  document.getElementById('new-room-cancel-bottom')?.addEventListener('click', closeNewRoomModal);
-  document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModal);
+  // new-room-btn と new-room-btn-center は chat.js の setupEventListeners で登録済み
+  // new-room-cancel-bottom はchat.jsに未登録なので追加
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('new-room-cancel-bottom')?.addEventListener('click', closeNewRoomModal);
+  });
 </script>
 
 </body>
