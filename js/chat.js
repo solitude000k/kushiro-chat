@@ -35,7 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ポーリング (擬似リアルタイム)
   pollTimer = setInterval(() => {
     if (currentRoom) refreshMessages();
+    updateDMBadge();
   }, 3000);
+  updateDMBadge(); // 初回即時チェック
 });
 
 // ---- UI初期化 ----
@@ -45,6 +47,29 @@ function initUI() {
   const uname = document.getElementById('header-username');
   renderAvatar(avatar, currentUser);
   uname.textContent = currentUser.name;
+}
+
+
+// ---- DM 未読バッジ更新 ----
+function updateDMBadge() {
+  if (!currentUser) return;
+  const all = Storage.DirectMessages.getAll();
+  const unread = all.filter(m => m.toId === currentUser.id && !m.read).length;
+
+  const headerBadge = document.getElementById('dm-header-badge');
+  const menuBadge   = document.getElementById('dm-menu-badge');
+
+  if (headerBadge) {
+    headerBadge.style.display = unread > 0 ? 'block' : 'none';
+  }
+  if (menuBadge) {
+    if (unread > 0) {
+      menuBadge.style.display = 'inline-flex';
+      menuBadge.textContent = unread > 99 ? '99+' : unread;
+    } else {
+      menuBadge.style.display = 'none';
+    }
+  }
 }
 
 // ---- ルーム一覧読み込み ----

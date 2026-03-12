@@ -34,8 +34,8 @@
     </div>
 
     <div class="header-actions">
-      <div class="header-user" id="user-menu-trigger">
-        <div class="avatar avatar-sm" id="header-avatar"></div>
+      <div class="header-user" id="user-menu-trigger" style="position:relative;">
+        <div style="position:relative;display:inline-flex;"><div class="avatar avatar-sm" id="header-avatar"></div><span id="dm-header-badge" style="display:none;position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#ef5350;border-radius:50%;border:2px solid var(--bg-dark);"></span></div>
         <span class="header-user-name" id="header-username"></span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted)">
           <polyline points="6 9 12 15 18 9"/>
@@ -60,6 +60,7 @@
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
           ダイレクトメッセージ
+          <span id="dm-menu-badge" style="display:none;margin-left:auto;min-width:18px;height:18px;padding:0 5px;background:#ef5350;color:#fff;font-size:0.65rem;font-weight:700;border-radius:9px;display:none;align-items:center;justify-content:center;"></span>
         </a>
         <div style="height:1px;background:var(--border);margin:4px 0;"></div>
         <button id="logout-btn" class="btn-icon w-full" style="justify-content:flex-start;gap:8px;padding:8px 12px;border-radius:var(--radius-sm);">
