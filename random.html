@@ -410,15 +410,8 @@
 .ad-cancel-btn:hover { border-color: var(--border-amber); color: var(--text-secondary); }
 </style>
 
-<!-- Google AdSense (他ページ用・このページでは不使用) -->
-<!-- Playwire 動画リワード広告 -->
-<!-- ★要設定: YOUR_PUBLISHER_ID と YOUR_SITE_ID をPlaywireダッシュボードの値に変更してください -->
-<script>
-  window.playwire = window.playwire || {};
-  window.playwire.publisherId = 'YOUR_PUBLISHER_ID'; // ★ Playwire Publisher ID
-  window.playwire.siteId      = 'YOUR_SITE_ID';      // ★ Playwire Site ID
-</script>
-<script async src="https://cdn.pwrd.net/pw.js"></script>
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5MBEHVJVDS"></script>
 <script>
@@ -530,16 +523,17 @@
       <div class="ad-modal-desc">下の広告をご覧いただいた後、チャットを開始できます。<br>釧チャはみなさまの広告閲覧で運営されています。</div>
     </div>
 
-    <!-- Playwire 動画リワード広告 -->
-    <div class="ad-slot-wrap" id="pw-ad-container">
+    <!-- 広告スロット -->
+    <div class="ad-slot-wrap">
       <span class="ad-slot-label">advertisement</span>
-      <!-- Playwire リワード動画プレーヤー -->
-      <div id="pw-reward-player" style="width:100%;min-height:250px;display:flex;align-items:center;justify-content:center;">
-        <div id="pw-player-loading" style="text-align:center;color:var(--text-muted);font-size:.82rem;">
-          <div style="font-size:1.5rem;margin-bottom:8px;">🎬</div>
-          広告を読み込み中...
-        </div>
-      </div>
+      <!-- GoogleAdSense01 -->
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-9350505956759257"
+           data-ad-slot="2112065815"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
     <!-- カウントダウン -->
@@ -673,57 +667,8 @@ function openAdModal() {
   document.getElementById('ad-countdown-text').innerHTML =
     '<span id="ad-sec">5</span>秒後にボタンが解放されます';
 
-  // Playwire リワード動画を起動
-  _startPlaywireReward();
-}
-
-function _startPlaywireReward() {
-  const container = document.getElementById('pw-reward-player');
-  const loading   = document.getElementById('pw-player-loading');
-
-  // Playwire SDK が読み込まれているか確認
-  if (typeof window.playwire !== 'undefined' && window.playwire.publisherId !== 'YOUR_PUBLISHER_ID') {
-    // ---- Playwire Rewarded Video API ----
-    try {
-      window.playwire.requestRewardedAd({
-        containerId: 'pw-reward-player',
-        onReady: () => {
-          if (loading) loading.style.display = 'none';
-          _startCountdown();
-        },
-        onComplete: () => {
-          // 動画視聴完了 → 即解放
-          clearInterval(adTimer);
-          adProceedBtn.disabled = false;
-          adProceedTxt.textContent = 'ランダムチャットを開始';
-          document.getElementById('ad-countdown-text').innerHTML = '✅ 動画の視聴ありがとうございます！';
-        },
-        onSkip: () => {
-          // スキップ → カウントダウン継続（ボタンは解放しない）
-        },
-        onError: () => {
-          // エラー時はフォールバックでカウントダウン
-          _startCountdown();
-        }
-      });
-    } catch(e) {
-      _startCountdown();
-    }
-  } else {
-    // ★ Playwire未設定 or 開発時：フォールバック（カウントダウンのみ）
-    if (loading) {
-      loading.innerHTML = '<div style="font-size:1.2rem;margin-bottom:6px;">📺</div><div style="font-size:.78rem;">広告スペース<br><span style="font-size:.68rem;opacity:.6;">(Playwire設定後に動画広告が表示されます)</span></div>';
-    }
-    _startCountdown();
-  }
-}
-
-function _startCountdown() {
   // カウントダウン開始（5秒）
   let remaining = 5;
-  document.getElementById('ad-sec').textContent = remaining;
-
-  // バー縮小アニメーション
   requestAnimationFrame(() => {
     adBar.style.transition = 'width 5s linear';
     adBar.style.width = '0%';

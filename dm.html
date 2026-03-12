@@ -403,7 +403,7 @@ function formatDMTime(date) {
   if (diff<60000) return 'たった今';
   if (diff<3600000) return Math.floor(diff/60000)+'分前';
   if (diff<86400000 && now.getDate()===date.getDate()) return formatTime(date);
-  return `${date.getMonth()+1}/${date.getDate()}`;
+  return `${date.getMonth()+1}月${date.getDate()}日`;
 }
 function showToast(msg, type='info') {
   const t=document.createElement('div'); t.className=`toast toast-${type}`; t.textContent=msg;
