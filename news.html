@@ -303,6 +303,9 @@
 
     /* レスポンシブ */
     @media (max-width: 600px) {
+      .header-brand-text { display: none; }
+      .header-brand-sub  { display: none; }
+      .header-brand img  { width: 28px; height: 28px; }
       .header-auth { gap: 4px; }
       .header-auth .btn { padding: 5px 9px; font-size: .72rem; }
       .news-layout { padding: 12px 10px 48px; }
@@ -542,7 +545,7 @@ function highlightText(text) {
 
 // 固定4カテゴリ定義
 const FIXED_CATS = [
-  { key: '交通・インフラ情報',    icon: '🚗', label: '交通・インフラ情報', sub: '(1時間以内の更新を含む)' },
+  { key: '交通・インフラ情報',    icon: '🚗', label: '交通・インフラ情報', sub: '1時間以内の最新情報' },
   { key: '事件・事故・社会',       icon: '🚨', label: '事件・事故・社会',   sub: '' },
   { key: '地域イベント・行政情報', icon: '📅', label: '地域イベント・行政情報', sub: '' },
   { key: '補足',                   icon: '📌', label: '補足',              sub: '' },
@@ -603,7 +606,7 @@ function renderNews(data) {
         <div class="section-header">
           <span class="section-icon">${cat.icon}</span>
           <span class="section-name">${cat.label}</span>
-          ${cat.sub ? `<span style="font-size:.68rem;color:var(--text-muted);margin-left:2px;">${cat.sub}</span>` : ''}
+          ${cat.sub ? `<span style="font-size:.6rem;color:var(--text-muted);margin-left:4px;letter-spacing:.02em;">${cat.sub}</span>` : ''}
           <span class="section-count">${realItems.length}件</span>
         </div>
         <div class="news-items">`;

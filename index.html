@@ -211,6 +211,14 @@
       line-height: 2;
     }
     .top-footer a { color: var(--amber); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .header-brand-text { display: none; }
+      .header-brand-sub  { display: none; }
+      .header-brand img  { width: 28px; height: 28px; }
+      .header-auth { gap: 4px; }
+      .header-auth .btn  { font-size: .72rem; padding: 5px 9px; }
+    }
 </style>
 </head>
 <body>
