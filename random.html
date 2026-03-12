@@ -10,20 +10,6 @@
   <link rel="stylesheet" href="css/dm.css">
 
 <style>
-.nav-item{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:.8rem;font-weight:500;color:var(--text-secondary);text-decoration:none;transition:all .18s;}
-.nav-item:hover{background:var(--bg-hover);color:var(--text-primary);}
-.nav-item.active{color:var(--amber);background:rgba(244,166,32,0.08);}
-.app-header{display:flex;align-items:center;justify-content:space-between;}
-@media (max-width: 600px) {
-  .app-header { padding: 0 10px; height: 52px; }
-  .header-brand img { width: 28px; height: 28px; }
-  .header-brand-text { font-size: .9rem; }
-  .header-brand-sub { display: none; }
-  .nav-item { padding: 5px 7px; gap: 0; font-size: 0; }
-  .nav-item svg { width: 18px; height: 18px; }
-  .header-user-name { display: none; }
-}
-
 /* ===== ランダムチャットページ ===== */
 .random-layout {
   display: flex;
@@ -199,7 +185,6 @@
 }
 .random-start-btn.loading .btn-spinner { display: block; }
 .random-start-btn.loading .btn-text { display: none; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* 結果カード */
 .random-result {
@@ -216,7 +201,6 @@
   background: rgba(239,83,80,0.08);
   border: 1px solid rgba(239,83,80,0.25);
 }
-@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 
 .result-header {
   display: flex;

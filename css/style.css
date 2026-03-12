@@ -319,6 +319,17 @@ option { background: var(--bg-card); }
 .fade-in { animation: fadeIn 0.35s ease forwards; }
 .pulse-amber { animation: pulse-amber 2s ease-in-out infinite; }
 
+/* ---- Nav Item (全ページ共通ナビゲーション) ---- */
+.nav-item {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 8px;
+  font-size: .8rem; font-weight: 500;
+  color: var(--text-secondary); text-decoration: none;
+  transition: all .18s;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { color: var(--amber); background: rgba(244,166,32,0.08); }
+
 /* ---- Utilities ---- */
 .flex { display: flex; }
 .flex-col { display: flex; flex-direction: column; }

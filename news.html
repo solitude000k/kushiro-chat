@@ -8,14 +8,6 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/chat.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      font-family: var(--font-sans);
-      min-height: 100vh;
-    }
-
     /* ===== ヘッダー ===== */
     .top-header {
       position: sticky; top: 0; z-index: 100;
@@ -26,20 +18,6 @@
       border-bottom: 1px solid var(--border);
       box-shadow: 0 2px 20px rgba(0,0,0,0.5);
     }
-    .header-brand { display:flex;align-items:center;gap:10px;text-decoration:none; }
-    .header-brand img { width:36px;height:36px; }
-    .header-brand-text { font-family:var(--font-serif);font-size:1.1rem;font-weight:700;color:var(--amber);letter-spacing:.02em;line-height:1.2; }
-    .header-brand-sub { font-size:.62rem;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase; }
-    .header-nav { display:flex;align-items:center;gap:4px; }
-    .nav-link {
-      display:flex;align-items:center;gap:5px;
-      padding:6px 14px;border-radius:8px;
-      font-size:.82rem;font-weight:500;
-      color:var(--text-secondary);text-decoration:none;
-      transition:all .18s ease;
-    }
-    .nav-link:hover { background:var(--bg-hover);color:var(--text-primary); }
-    .nav-link.active { color:var(--amber);background:var(--amber-subtle); }
     .header-auth { display:flex;align-items:center;gap:8px; }
 
     /* ===== ページヘッダー ===== */
@@ -117,7 +95,6 @@
     .refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
     .refresh-btn svg { transition: transform .4s; }
     .refresh-btn.spinning svg { animation: spin .8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ===== サマリーカード ===== */
     .summary-card {
@@ -273,7 +250,7 @@
       color: var(--cyan); opacity: .85; letter-spacing: .02em;
     }
 
-    /* ===== キャッシュ注記 ===== */
+    /* ===== 更新時間注記 ===== */
     .cache-note {
       text-align: center; font-size: .72rem; color: var(--text-muted);
       padding: 16px; border-top: 1px solid var(--border); margin-top: 24px;
@@ -301,8 +278,6 @@
     /* 空アイテム */
     .news-item.empty-item { opacity: .45; background: transparent; border-style: dashed; }
     .news-item.empty-item::before { display: none; }
-    /* アイテムカウント（件数） */
-    .section-count { margin-left: auto; font-size: .7rem; background: var(--bg-elevated); color: var(--text-muted); padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
     /* 高urgencyアイテム：左ボーダー脈動 */
     .news-item.urgency-high { animation: borderPulse 3s ease-in-out infinite; }
     @keyframes borderPulse {
@@ -310,7 +285,6 @@
       50%      { border-color: rgba(239,83,80,.55); }
     }
     /* rawTextトグル */
-    .raw-toggle { display: none; } /* 管理者のみJSで表示 */
     .raw-toggle {
       display: inline-flex; align-items: center; gap: 5px;
       margin-top: 24px; padding: 7px 14px;
@@ -329,22 +303,10 @@
 
     /* レスポンシブ */
     @media (max-width: 600px) {
-      .top-header { padding: 0 10px; height: 52px; }
-      .header-brand img { width: 28px; height: 28px; }
-      .header-brand-text { font-size: .9rem; }
-      .header-brand-sub { display: none; }
-      .header-nav { gap: 1px; }
-      .nav-link { padding: 5px 7px; gap: 0; }
-      .nav-link span { display: none; }
-      .nav-link svg { width: 18px; height: 18px; }
       .header-auth { gap: 4px; }
       .header-auth .btn { padding: 5px 9px; font-size: .72rem; }
       .news-layout { padding: 12px 10px 48px; }
     }
-.nav-item{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:.8rem;font-weight:500;color:var(--text-secondary);text-decoration:none;transition:all .18s;}
-.nav-item:hover{background:var(--bg-hover);color:var(--text-primary);}
-.nav-item.active{color:var(--amber);background:rgba(244,166,32,0.08);}
-@media(max-width:600px){.nav-item span{display:none;}.nav-item{padding:5px 8px;}}
 </style>
 </head>
 <body>
@@ -512,7 +474,7 @@ async function loadNews(forceRefresh = false) {
     const stale  = data.stale;
     const fetchTime = data.fetchedAt ? new Date(data.fetchedAt) : new Date();
     const timeStr = fetchTime.toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
-    txt.textContent = stale ? `⚠ 古いキャッシュ: ${timeStr}` : cached ? `キャッシュ: ${timeStr}` : `最終更新: ${timeStr}`;
+    txt.textContent = stale ? `⚠ 古いニュースデータ: ${timeStr}` : `ニュースデータ最終更新時間: ${timeStr}`;
     txt.style.color = stale ? '#ef5350' : 'var(--text-muted)';
 
     if (stale) {
@@ -539,7 +501,6 @@ async function loadNews(forceRefresh = false) {
         <p style="font-size:.83rem;margin-top:8px;">${escHtml(e.message)}</p>
         <button onclick="loadNews()" class="btn btn-ghost" style="margin-top:20px;font-size:.82rem;">再試行</button>
       </div>`;
-  } finally {
   }
 }
 
