@@ -366,12 +366,7 @@
       <div class="status-dot loading" id="status-dot"></div>
       <span id="status-text" style="color:var(--text-secondary);">情報を取得中...</span>
     </div>
-    <button class="refresh-btn" id="refresh-btn" onclick="loadNews(true)" disabled>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-      更新
-    </button>
+
   </div>
 
   <!-- コンテンツエリア -->
@@ -417,15 +412,12 @@ function escHtml(s) {
 async function loadNews(forceRefresh = false) {
   const dot   = document.getElementById('status-dot');
   const txt   = document.getElementById('status-text');
-  const btn   = document.getElementById('refresh-btn');
   const note  = document.getElementById('cache-note');
   const area  = document.getElementById('news-content');
 
   dot.className = 'status-dot loading';
   txt.textContent = '情報を取得中...';
   txt.style.color = 'var(--text-secondary)';
-  btn.disabled = true;
-  btn.classList.add('spinning');
 
   try {
     const url = window.KUSHIRO_API_BASE + '/api/news' + (forceRefresh ? '?refresh=1' : '');
@@ -471,8 +463,6 @@ async function loadNews(forceRefresh = false) {
         <button onclick="loadNews()" class="btn btn-ghost" style="margin-top:20px;font-size:.82rem;">再試行</button>
       </div>`;
   } finally {
-    btn.disabled = false;
-    btn.classList.remove('spinning');
   }
 }
 
@@ -486,12 +476,9 @@ const HIGHLIGHT = [
 // フロント側でもMarkdown残渣を除去（Workerパース漏れの保険）
 function stripMd(s) {
   return (s || '')
-    .replace(/\*{1,3}([^*
-]+)\*{1,3}/g, '$1')
-    .replace(/_{1,2}([^_
-]+)_{1,2}/g, '$1')
-    .replace(/`([^`
-]+)`/g, '$1')
+    .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')
+    .replace(/_{1,2}([^_]+)_{1,2}/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/^#{1,6}\s*/gm, '')
     .replace(/^[=\-]{3,}$/gm, '')
@@ -607,7 +594,6 @@ function toggleRaw(btn) {
   const box = document.getElementById('raw-box');
   const open = box.style.display === 'block';
   box.style.display = open ? 'none' : 'block';
-  btn.innerHTML = open
     ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Gemini 生テキストを表示'
     : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Gemini 生テキストを閉じる';
 }
