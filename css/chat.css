@@ -643,3 +643,13 @@
   transition: background .15s, color .15s;
 }
 .profile-sns-btn:hover { background: rgba(255,255,255,0.14); color: var(--text-primary); }
+
+/* SNS未登録グレーアウト */
+.profile-sns-disabled {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.18);
+  cursor: not-allowed;
+}

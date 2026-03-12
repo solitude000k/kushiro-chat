@@ -690,17 +690,17 @@ function showUserProfile(userId, userName) {
     avHtml = `<div style="width:72px;height:72px;border-radius:50%;border:3px solid ${color};background:${color}22;color:${color};display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;flex-shrink:0;">${initial}</div>`;
   }
 
-  // SNSアイコンHTML
-  const sns = [];
-  if (xUrl) sns.push(`<a href="${xUrl}" target="_blank" rel="noopener" class="profile-sns-btn" title="X (Twitter)">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-  </a>`);
-  if (igUrl) sns.push(`<a href="${igUrl}" target="_blank" rel="noopener" class="profile-sns-btn" title="Instagram">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-  </a>`);
-  if (fbUrl) sns.push(`<a href="${fbUrl}" target="_blank" rel="noopener" class="profile-sns-btn" title="Facebook">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-  </a>`);
+  // SNSアイコンHTML（未登録でもグレーで常時表示）
+  function snsBtn(url, title, svgInner) {
+    if (url) {
+      return `<a href="${url}" target="_blank" rel="noopener" class="profile-sns-btn" title="${title}">${svgInner}</a>`;
+    }
+    return `<span class="profile-sns-btn profile-sns-disabled" title="${title}（未登録）">${svgInner}</span>`;
+  }
+  const xSvg  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+  const igSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`;
+  const fbSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`;
+  const sns = [snsBtn(xUrl, 'X (Twitter)', xSvg), snsBtn(igUrl, 'Instagram', igSvg), snsBtn(fbUrl, 'Facebook', fbSvg)];
 
   let modal = document.getElementById('user-profile-modal');
   if (!modal) {
@@ -723,8 +723,8 @@ function showUserProfile(userId, userName) {
           ${uid ? `<div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;margin-top:2px;">@${escapeHtml(uid)}</div>` : ''}
         </div>
       </div>
-      ${bio ? `<div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:12px;">${escapeHtml(bio)}</div>` : ''}
-      ${sns.length ? `<div style="display:flex;gap:10px;margin-top:4px;">${sns.join('')}</div>` : ''}
+      <div style="font-size:0.82rem;color:${bio ? 'var(--text-secondary)' : 'var(--text-muted)'};line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:12px;font-style:${bio ? 'normal' : 'italic'}">${bio ? escapeHtml(bio) : '自己紹介が登録されていません'}</div>
+      <div style="display:flex;gap:10px;margin-top:4px;">${sns.join('')}</div>
     </div>`;
   modal.classList.add('active');
 }
