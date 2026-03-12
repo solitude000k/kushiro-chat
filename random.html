@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ランダムチャット ～ 釧チャ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chat.css">
+  <link rel="stylesheet" href="css/dm.css">
+
+<style>
+.nav-item{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:.8rem;font-weight:500;color:var(--text-secondary);text-decoration:none;transition:all .18s;}
+.nav-item:hover{background:var(--bg-hover);color:var(--text-primary);}
+.nav-item.active{color:var(--amber);background:rgba(244,166,32,0.08);}
+.app-header{display:flex;align-items:center;justify-content:space-between;}
+@media (max-width: 600px) {
+  .app-header { padding: 0 10px; height: 52px; }
+  .header-brand img { width: 28px; height: 28px; }
+  .header-brand-text { font-size: .9rem; }
+  .header-brand-sub { display: none; }
+  .nav-item { padding: 5px 7px; gap: 0; font-size: 0; }
+  .nav-item svg { width: 18px; height: 18px; }
+  .header-user-name { display: none; }
+}
+
+/* ===== ランダムチャットページ ===== */
+.random-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.random-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px 40px;
+}
+.random-card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ヘッダーセクション */
+.random-card-header {
+  text-align: center;
+}
+.random-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  display: block;
+  filter: drop-shadow(0 0 16px rgba(244,166,32,0.4));
+}
+.random-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.random-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+/* 説明文 */
+.random-desc {
+  background: rgba(244,166,32,0.04);
+  border: 1px solid rgba(244,166,32,0.15);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.85;
+}
+.random-desc-label {
+  font-weight: 700;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+/* トグルスイッチ */
+.random-toggle-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  transition: border-color 0.2s;
+}
+.random-toggle-section.is-on {
+  border-color: rgba(244,166,32,0.4);
+  background: rgba(244,166,32,0.04);
+}
+.random-toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.random-toggle-label-main {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.random-toggle-label-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+/* toggle switch */
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.toggle-switch input { display: none; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-hover);
+  border-radius: 14px;
+  transition: background 0.25s;
+  border: 1px solid var(--border);
+}
+.toggle-switch input:checked ~ .toggle-track {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.25s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+  transform: translateX(24px);
+}
+
+/* スタートボタン */
+.random-start-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #f4a620, #e8890a);
+  color: #0a0e1a;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(244,166,32,0.3);
+}
+.random-start-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(244,166,32,0.45);
+}
+.random-start-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.random-start-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.random-start-btn .btn-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(10,14,26,0.3);
+  border-top-color: #0a0e1a;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+.random-start-btn.loading .btn-spinner { display: block; }
+.random-start-btn.loading .btn-text { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 結果カード */
+.random-result {
+  display: none;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+.random-result.success {
+  background: rgba(102,187,106,0.08);
+  border: 1px solid rgba(102,187,106,0.3);
+}
+.random-result.error {
+  background: rgba(239,83,80,0.08);
+  border: 1px solid rgba(239,83,80,0.25);
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.result-avatar {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; font-weight: 700;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.result-avatar img { width:100%; height:100%; object-fit:cover; }
+.result-info { flex: 1; }
+.result-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.result-status {
+  font-size: 0.75rem;
+  color: #66bb6a;
+  margin-top: 2px;
+}
+.result-msg {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+.result-error-msg {
+  font-size: 0.85rem;
+  color: #ef5350;
+  line-height: 1.7;
+}
+.result-dm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #66bb6a;
+  color: #fff;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.18s;
+}
+.result-dm-btn:hover { background: #57a65b; transform: translateY(-1px); }
+
+/* 注意事項 */
+.random-caution {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.8;
+}
+.random-caution strong { color: #ef5350; }
+</style>
+</head>
+<body>
+<div class="night-bg"></div>
+<div class="random-layout">
+
+  <!-- ===== ヘッダー ===== -->
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="chat.html" class="btn-icon" title="掲示板に戻る" style="color:var(--text-secondary);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </a>
+      <a href="index.html" class="header-brand">
+        <img src="images/logo.svg" alt="ロゴ">
+        <div>
+          <div class="header-brand-text">釧チャ</div>
+          <div class="header-brand-sub">ランダムチャット</div>
+        </div>
+      </a>
+    </div>
+    <nav style="display:flex;align-items:center;gap:4px;">
+      <a href="index.html"  class="nav-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>トップ</span></a>
+      <a href="news.html"   class="nav-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>ニュース</span></a>
+      <a href="chat.html"   class="nav-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>掲示板</span></a>
+      <a href="dm.html"     class="nav-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg><span>DM</span></a>
+      <a href="random.html" class="nav-item active"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg><span>ランダム</span></a>
+    </nav>
+    <div style="position:relative;">
+      <div class="header-user" id="user-menu-trigger" style="cursor:pointer;">
+        <div class="avatar avatar-sm" id="header-avatar"></div>
+        <span class="header-user-name" id="header-username"></span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div id="user-dropdown" class="hidden" style="position:absolute;top:48px;right:0;background:var(--bg-card);border:1px solid var(--border-amber);border-radius:var(--radius-md);padding:8px;min-width:176px;box-shadow:var(--shadow-md);z-index:200;">
+        <a href="account.html" class="btn-icon w-full" style="justify-content:flex-start;gap:8px;padding:8px 12px;border-radius:var(--radius-sm);text-decoration:none;display:flex;align-items:center;white-space:nowrap;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          アカウント管理
+        </a>
+        <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+        <button id="logout-btn" class="btn-icon w-full" style="justify-content:flex-start;gap:8px;padding:8px 12px;border-radius:var(--radius-sm);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          ログアウト
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== メインコンテンツ ===== -->
+  <main class="random-main">
+    <div class="random-card">
+
+      <!-- タイトル -->
+      <div class="random-card-header">
+        <span class="random-icon">🎲</span>
+        <div class="random-title">ランダムチャット</div>
+        <div class="random-subtitle">RANDOM CHAT</div>
+      </div>
+
+      <!-- 機能説明 -->
+      <div class="random-desc">
+        <span class="random-desc-label">ランダムチャット機能</span>
+        ランダムチャットを有効にしている人の中からランダムでダイレクトメッセージを送信し、会話開始のサポートを行います。暇つぶしなどにご活用ください。また、当機能は出会い目的での使用はできません。詮索や出会いの強制などはお控えください。
+      </div>
+
+      <!-- ON/OFFトグル -->
+      <div class="random-toggle-section" id="toggle-section">
+        <div class="random-toggle-label">
+          <span class="random-toggle-label-main">ランダムチャットを受け付ける</span>
+          <span class="random-toggle-label-sub" id="toggle-status-text">読み込み中...</span>
+        </div>
+        <label class="toggle-switch" id="toggle-label" title="ランダムチャットの受付をON/OFFする">
+          <input type="checkbox" id="random-toggle-input">
+          <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        </label>
+      </div>
+
+      <!-- 結果表示エリア -->
+      <div class="random-result" id="random-result"></div>
+
+      <!-- スタートボタン -->
+      <button class="random-start-btn" id="start-btn" disabled>
+        <div class="btn-spinner"></div>
+        <span class="btn-text">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block;vertical-align:middle;margin-right:6px;"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+          ランダムチャットを開始
+        </span>
+      </button>
+
+      <!-- 注意事項 -->
+      <p class="random-caution">
+        <strong>⚠ 注意：</strong>出会い・詮索目的での利用は禁止です。<br>
+        不快な連絡を受けた場合は管理者にご報告ください。
+      </p>
+
+    </div>
+  </main>
+
+</div><!-- /.random-layout -->
+
+<div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/api.js"></script>
+<script>
+// ===== 認証チェック =====
+const currentUser = Storage.Session.get();
+if (!currentUser) { window.location.href = 'login.html'; }
+
+// ===== ヘッダー =====
+(function() {
+  const av    = document.getElementById('header-avatar');
+  const uname = document.getElementById('header-username');
+  const color = currentUser.color || '#f4a620';
+  if (currentUser.avatarDataUrl) {
+    av.innerHTML        = `<img src="${currentUser.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    av.style.background = 'transparent';
+    av.style.overflow   = 'hidden';
+  } else {
+    av.textContent      = (currentUser.nickname || currentUser.name || '?').charAt(0).toUpperCase();
+    av.style.background = color + '22';
+    av.style.color      = color;
+  }
+  av.style.borderColor = color;
+  uname.textContent = currentUser.nickname || currentUser.name || '';
+
+  const trigger  = document.getElementById('user-menu-trigger');
+  const dropdown = document.getElementById('user-dropdown');
+  trigger.addEventListener('click', e => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
+  document.addEventListener('click', () => dropdown.classList.add('hidden'));
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    Storage.Session.clear();
+    window.location.href = 'login.html';
+  });
+})();
+
+// ===== トグルON/OFF =====
+const toggleInput   = document.getElementById('random-toggle-input');
+const toggleSection = document.getElementById('toggle-section');
+const toggleSubText = document.getElementById('toggle-status-text');
+const startBtn      = document.getElementById('start-btn');
+
+async function loadStatus() {
+  try {
+    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/status', {
+      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
+    });
+    const data = await res.json();
+    if (data.ok) applyToggleUI(data.randomChat);
+  } catch(e) {
+    toggleSubText.textContent = '取得失敗';
+  }
+}
+
+function applyToggleUI(isOn) {
+  toggleInput.checked = isOn;
+  toggleSection.classList.toggle('is-on', isOn);
+  toggleSubText.textContent = isOn ? 'ON：他のユーザーからランダムDMを受け付けています' : 'OFF：ランダムDMを受け付けていません';
+  startBtn.disabled = false;
+}
+
+toggleInput.addEventListener('change', async () => {
+  toggleInput.disabled = true;
+  startBtn.disabled = true;
+  try {
+    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/toggle', {
+      method: 'POST',
+      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
+    });
+    const data = await res.json();
+    if (data.ok) {
+      applyToggleUI(data.randomChat);
+      showToast(data.randomChat ? 'ランダムチャットをONにしました' : 'ランダムチャットをOFFにしました', data.randomChat ? 'success' : 'info');
+    } else {
+      showToast(data.error || '切り替えに失敗しました', 'error');
+      toggleInput.checked = !toggleInput.checked; // 元に戻す
+    }
+  } catch(e) {
+    showToast('通信エラーが発生しました', 'error');
+    toggleInput.checked = !toggleInput.checked;
+  } finally {
+    toggleInput.disabled = false;
+    startBtn.disabled = false;
+  }
+});
+
+// ===== ランダムチャット開始 =====
+const resultEl = document.getElementById('random-result');
+
+startBtn.addEventListener('click', async () => {
+  startBtn.classList.add('loading');
+  startBtn.disabled = true;
+  resultEl.style.display = 'none';
+
+  try {
+    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/start', {
+      method: 'POST',
+      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
+    });
+    const data = await res.json();
+
+    if (data.ok) {
+      const m = data.matched;
+      const color = m.color || '#f4a620';
+      let avHtml;
+      if (m.avatarDataUrl) {
+        avHtml = `<img src="${m.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+      } else {
+        avHtml = `<span style="color:${color};background:${color}22;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;">${(m.nickname||m.userId||'?').charAt(0).toUpperCase()}</span>`;
+      }
+      resultEl.className = 'random-result success';
+      resultEl.innerHTML = `
+        <div class="result-header">
+          <div class="result-avatar" style="border-color:${color};">${avHtml}</div>
+          <div class="result-info">
+            <div class="result-name">${escHtml(m.nickname || m.userId)}</div>
+            <div class="result-status">✓ マッチしました！</div>
+          </div>
+        </div>
+        <div class="result-msg">
+          ${escHtml(m.nickname || m.userId)} さんに挨拶メッセージを送りました。<br>
+          DMページから会話を続けましょう！
+        </div>
+        <a href="dm.html" class="result-dm-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          DMページで確認する
+        </a>`;
+      resultEl.style.display = 'block';
+      showToast('マッチしました！', 'success');
+    } else {
+      resultEl.className = 'random-result error';
+      resultEl.innerHTML = `<div class="result-error-msg">😔 ${escHtml(data.error || 'エラーが発生しました')}</div>`;
+      resultEl.style.display = 'block';
+    }
+  } catch(e) {
+    resultEl.className = 'random-result error';
+    resultEl.innerHTML = `<div class="result-error-msg">😔 通信エラーが発生しました。時間をおいてお試しください。</div>`;
+    resultEl.style.display = 'block';
+  } finally {
+    startBtn.classList.remove('loading');
+    startBtn.disabled = false;
+  }
+});
+
+function escHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// 初期読み込み
+loadStatus();
+</script>
+</body>
+</html>
