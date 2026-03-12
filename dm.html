@@ -369,9 +369,9 @@ function renderDMMessages() {
         <div class="dm-bubble-meta ${isOwn ? 'own' : ''}">
           ${deleteBtn}
           <span class="dm-bubble-time">${formatTime(date)}</span>
+          ${isOwn ? avHtml : ''}
         </div>
-      </div>
-      ${isOwn ? avHtml : ''}`;
+      </div>`;
 
     container.appendChild(row);
   });
