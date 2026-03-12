@@ -279,11 +279,6 @@
   <!-- コンテンツエリア -->
   <div id="news-content">
     <!-- スケルトン -->
-    <div class="summary-card">
-      <div class="skeleton-line short" style="margin-bottom:12px;height:8px;width:30%;"></div>
-      <div class="skeleton-line long"></div>
-      <div class="skeleton-line" style="width:75%;"></div>
-    </div>
     <div id="skeleton-sections">
       <div class="news-section">
         <div class="section-header">
@@ -383,46 +378,63 @@ async function loadNews(forceRefresh = false) {
   }
 }
 
+// 固定4カテゴリ定義
+const FIXED_CATS = [
+  { key: '交通・インフラ情報',    icon: '🚗', label: '交通・インフラ情報', sub: '(1時間以内の更新を含む)' },
+  { key: '事件・事故・社会',       icon: '🚨', label: '事件・事故・社会',   sub: '' },
+  { key: '地域イベント・行政情報', icon: '📅', label: '地域イベント・行政情報', sub: '' },
+  { key: '補足',                   icon: '📌', label: '補足',              sub: '' },
+];
+
 function renderNews(data) {
   const area = document.getElementById('news-content');
+  const rawSections = data.sections || [];
+
+  // Geminiが返したセクションをカテゴリ名で分類（部分一致でもマッチ）
+  function findItems(catKey) {
+    // 完全一致優先、次に部分一致
+    const exact = rawSections.find(s => s.category === catKey);
+    if (exact) return exact.items || [];
+    const partial = rawSections.find(s =>
+      s.category && (s.category.includes(catKey.split('・')[0]) || catKey.includes(s.category.split('・')[0]))
+    );
+    return partial ? (partial.items || []) : [];
+  }
+
+  if (!rawSections.length) {
+    area.innerHTML = `<div class="error-card"><span class="error-icon">📭</span><h3>ニュースが見つかりませんでした</h3></div>`;
+    return;
+  }
+
   let html = '';
-
-  // サマリー
-  if (data.summary) {
-    html += `
-      <div class="summary-card">
-        <div class="summary-label">📋 今日の概要</div>
-        <p class="summary-text">${escHtml(data.summary)}</p>
-      </div>`;
-  }
-
-  // セクション
-  const sections = data.sections || [];
-  if (!sections.length) {
-    html += `<div class="error-card"><span class="error-icon">📭</span><h3>ニュースが見つかりませんでした</h3></div>`;
-  }
-  sections.forEach(sec => {
-    const items = sec.items || [];
+  FIXED_CATS.forEach(cat => {
+    const items = findItems(cat.key);
+    const badges = { high:'速報', normal:'情報', low:'参考' };
     html += `
       <div class="news-section">
         <div class="section-header">
-          <span class="section-icon">${escHtml(sec.icon||'📰')}</span>
-          <span class="section-name">${escHtml(sec.category||'')}</span>
+          <span class="section-icon">${cat.icon}</span>
+          <span class="section-name">${cat.label}</span>
+          ${cat.sub ? `<span style="font-size:.7rem;color:var(--text-muted);margin-left:4px;">${cat.sub}</span>` : ''}
           <span class="section-count">${items.length}件</span>
         </div>
         <div class="news-items">
-          ${items.map(item => {
-            const urg = item.urgency || 'normal';
-            const badges = { high:'速報', normal:'情報', low:'参考' };
-            return `
-              <div class="news-item urgency-${escHtml(urg)}">
-                <div class="news-item-title">
-                  <span class="urgency-badge ${escHtml(urg)}">${badges[urg]||'情報'}</span>
-                  ${escHtml(item.title||'')}
-                </div>
-                <p class="news-item-detail">${escHtml(item.detail||'')}</p>
-              </div>`;
-          }).join('')}
+          ${items.length === 0
+            ? `<div class="news-item urgency-low" style="opacity:.6;">
+                <div class="news-item-title"><span class="urgency-badge low">参考</span>現在確認できる情報はありません</div>
+               </div>`
+            : items.map(item => {
+                const urg = item.urgency || 'normal';
+                return `
+                  <div class="news-item urgency-${escHtml(urg)}">
+                    <div class="news-item-title">
+                      <span class="urgency-badge ${escHtml(urg)}">${badges[urg]||'情報'}</span>
+                      ${escHtml(item.title||'')}
+                    </div>
+                    <p class="news-item-detail">${escHtml(item.detail||'')}</p>
+                  </div>`;
+              }).join('')
+          }
         </div>
       </div>`;
   });
