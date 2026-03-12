@@ -263,7 +263,155 @@
   line-height: 1.8;
 }
 .random-caution strong { color: #ef5350; }
+
+/* ===== 広告モーダル ===== */
+.ad-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.ad-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ad-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-amber);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px 28px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transform: translateY(12px);
+  transition: transform 0.25s;
+}
+.ad-modal-overlay.visible .ad-modal {
+  transform: translateY(0);
+}
+.ad-modal-header {
+  text-align: center;
+}
+.ad-modal-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 8px;
+}
+.ad-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.ad-modal-desc {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+.ad-slot-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.ad-slot-label {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.ad-countdown-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.ad-countdown-bar-track {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ad-countdown-bar {
+  height: 100%;
+  background: var(--amber);
+  border-radius: 2px;
+  width: 100%;
+  transition: width 1s linear;
+}
+.ad-countdown-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.ad-countdown-text span {
+  color: var(--amber);
+  font-weight: 700;
+}
+.ad-proceed-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #f4a620, #e8890a);
+  color: #0a0e1a;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(244,166,32,0.3);
+}
+.ad-proceed-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(244,166,32,0.45);
+}
+.ad-proceed-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+}
+.ad-cancel-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.ad-cancel-btn:hover { border-color: var(--border-amber); color: var(--text-secondary); }
 </style>
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="night-bg"></div>
@@ -358,6 +506,45 @@
 
 </div><!-- /.random-layout -->
 
+<!-- ===== 広告モーダル ===== -->
+<div class="ad-modal-overlay" id="ad-modal-overlay" role="dialog" aria-modal="true" aria-label="広告">
+  <div class="ad-modal">
+    <div class="ad-modal-header">
+      <span class="ad-modal-icon">🎲</span>
+      <div class="ad-modal-title">ランダムチャットを開始しますか？</div>
+      <div class="ad-modal-desc">下の広告をご覧いただいた後、チャットを開始できます。<br>釧チャはみなさまの広告閲覧で運営されています。</div>
+    </div>
+
+    <!-- 広告スロット -->
+    <div class="ad-slot-wrap">
+      <span class="ad-slot-label">advertisement</span>
+      <ins class="adsbygoogle"
+           style="display:block;width:100%;min-height:250px;"
+           data-ad-client="ca-pub-9350505956759257"
+           data-ad-slot="auto"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
+
+    <!-- カウントダウン -->
+    <div class="ad-countdown-wrap">
+      <div class="ad-countdown-bar-track">
+        <div class="ad-countdown-bar" id="ad-countdown-bar"></div>
+      </div>
+      <div class="ad-countdown-text" id="ad-countdown-text">
+        <span id="ad-sec">5</span>秒後にボタンが解放されます
+      </div>
+    </div>
+
+    <!-- 開始ボタン -->
+    <button class="ad-proceed-btn" id="ad-proceed-btn" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+      <span id="ad-proceed-text">しばらくお待ちください…</span>
+    </button>
+    <button class="ad-cancel-btn" id="ad-cancel-btn">キャンセル</button>
+  </div>
+</div>
+
 <div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
 
 <script src="js/config.js"></script>
@@ -445,10 +632,76 @@ toggleInput.addEventListener('change', async () => {
   }
 });
 
-// ===== ランダムチャット開始 =====
-const resultEl = document.getElementById('random-result');
+// ===== 広告モーダル & ランダムチャット開始 =====
+const resultEl     = document.getElementById('random-result');
+const adOverlay    = document.getElementById('ad-modal-overlay');
+const adProceedBtn = document.getElementById('ad-proceed-btn');
+const adCancelBtn  = document.getElementById('ad-cancel-btn');
+const adSecEl      = document.getElementById('ad-sec');
+const adBar        = document.getElementById('ad-countdown-bar');
+const adProceedTxt = document.getElementById('ad-proceed-text');
 
-startBtn.addEventListener('click', async () => {
+let adTimer = null;
+
+// スタートボタン → 広告モーダルを開く
+startBtn.addEventListener('click', () => {
+  openAdModal();
+});
+
+function openAdModal() {
+  adOverlay.classList.add('visible');
+  adProceedBtn.disabled = true;
+  adProceedTxt.textContent = 'しばらくお待ちください…';
+  adBar.style.transition = 'none';
+  adBar.style.width = '100%';
+
+  // AdSense再挿入（モーダル開くたびに広告をリフレッシュ）
+  try {
+    const ins = adOverlay.querySelector('.adsbygoogle');
+    if (ins && !ins.dataset.adsbygoogleStatus) {
+      (adsbygoogle = window.adsbygoogle || []).push({});
+    }
+  } catch(e) {}
+
+  // カウントダウン開始（5秒）
+  let remaining = 5;
+  adSecEl.textContent = remaining;
+
+  // バー縮小アニメーション
+  requestAnimationFrame(() => {
+    adBar.style.transition = 'width 5s linear';
+    adBar.style.width = '0%';
+  });
+
+  clearInterval(adTimer);
+  adTimer = setInterval(() => {
+    remaining--;
+    adSecEl.textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(adTimer);
+      adProceedBtn.disabled = false;
+      adProceedTxt.textContent = 'ランダムチャットを開始';
+      document.getElementById('ad-countdown-text').innerHTML = '✅ 広告を確認しました。開始できます！';
+    }
+  }, 1000);
+}
+
+function closeAdModal() {
+  adOverlay.classList.remove('visible');
+  clearInterval(adTimer);
+}
+
+adCancelBtn.addEventListener('click', closeAdModal);
+
+// オーバーレイ外クリックで閉じる
+adOverlay.addEventListener('click', e => {
+  if (e.target === adOverlay) closeAdModal();
+});
+
+// 開始ボタン（広告閲覧後に解放）
+adProceedBtn.addEventListener('click', async () => {
+  closeAdModal();
+  // 実際のマッチング処理
   startBtn.classList.add('loading');
   startBtn.disabled = true;
   resultEl.style.display = 'none';
