@@ -56,6 +56,11 @@
       <!-- 情報 -->
       <div class="profile-fields">
         <div class="form-group">
+          <label class="form-label">ユーザーID</label>
+          <input type="text" id="acc-userid" class="form-input" disabled style="opacity:.6;cursor:not-allowed;font-family:monospace;">
+          <p class="text-xs text-muted" style="margin-top:4px;">ユーザーIDは変更できません</p>
+        </div>
+        <div class="form-group">
           <label class="form-label">ニックネーム</label>
           <input type="text" id="acc-nickname" class="form-input" maxlength="20">
         </div>
@@ -67,6 +72,41 @@
         <div class="form-group">
           <label class="form-label">アバターカラー</label>
           <div class="color-picker-row" id="acc-color-picker"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">生年月日</label>
+          <input type="date" id="acc-birthdate" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label">性別</label>
+          <div style="display:flex;gap:16px;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;">
+              <input type="radio" name="acc-gender" value="male" id="gender-male"> 男性
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;">
+              <input type="radio" name="acc-gender" value="female" id="gender-female"> 女性
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;">
+              <input type="radio" name="acc-gender" value="other" id="gender-other"> その他
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">自己紹介 <span class="text-muted" style="font-size:.7rem;">（100文字以内）</span></label>
+          <textarea id="acc-bio" class="form-input" rows="3" maxlength="100" placeholder="自己紹介を入力してください" style="resize:vertical;"></textarea>
+          <p class="text-xs text-muted" style="margin-top:3px;text-align:right;"><span id="bio-count">0</span> / 100</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">X (Twitter) URL</label>
+          <input type="url" id="acc-x-url" class="form-input" placeholder="https://x.com/username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instagram URL</label>
+          <input type="url" id="acc-ig-url" class="form-input" placeholder="https://instagram.com/username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Facebook URL</label>
+          <input type="url" id="acc-fb-url" class="form-input" placeholder="https://facebook.com/username">
         </div>
       </div>
       <div style="width:100%;display:flex;justify-content:center;margin-top:16px;">
@@ -139,6 +179,21 @@
     </div>
   </section>
 
+  <!-- ---- アカウント削除 ---- -->
+  <section class="acc-section" style="border-color:rgba(239,83,80,0.3);">
+    <div class="section-title" style="color:#ef5350;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      アカウント削除
+    </div>
+    <p class="text-muted" style="font-size:.82rem;margin-bottom:16px;">アカウントを削除すると、すべての投稿履歴・プロフィール情報が失われます。この操作は取り消せません。</p>
+    <div style="display:flex;justify-content:center;">
+      <button class="btn btn-sm" id="delete-account-btn" style="background:rgba(239,83,80,0.15);color:#ef5350;border:1px solid rgba(239,83,80,0.4);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        アカウントを削除する
+      </button>
+    </div>
+  </section>
+
 </main>
 
 <div id="toast-container"></div>
@@ -164,6 +219,7 @@
   function renderProfile() {
     document.getElementById('acc-email').value    = currentAccount.email;
     document.getElementById('acc-nickname').value = currentAccount.nickname;
+    document.getElementById('acc-userid').value   = currentAccount.userId || '（旧アカウント：未設定）';
 
     const av = document.getElementById('acc-avatar');
     av.textContent = currentAccount.nickname.charAt(0).toUpperCase();
@@ -179,6 +235,19 @@
       document.getElementById('acc-avatar').classList.add('hidden');
       document.getElementById('avatar-remove-btn').style.display = 'inline-flex';
     }
+
+    // 追加フィールド
+    if (currentAccount.birthdate) document.getElementById('acc-birthdate').value = currentAccount.birthdate;
+    if (currentAccount.gender) {
+      const radio = document.querySelector(`input[name="acc-gender"][value="${currentAccount.gender}"]`);
+      if (radio) radio.checked = true;
+    }
+    const bioEl = document.getElementById('acc-bio');
+    bioEl.value = currentAccount.bio || '';
+    document.getElementById('bio-count').textContent = bioEl.value.length;
+    document.getElementById('acc-x-url').value  = currentAccount.xUrl  || '';
+    document.getElementById('acc-ig-url').value = currentAccount.igUrl || '';
+    document.getElementById('acc-fb-url').value = currentAccount.fbUrl || '';
   }
 
   function renderColorPicker() {
@@ -266,11 +335,41 @@
   document.getElementById('save-profile-btn').addEventListener('click', async () => {
     const nickname = document.getElementById('acc-nickname').value.trim();
     if (!nickname) { showToast('ニックネームを入力してください', 'error'); return; }
-    const updated = Storage.Accounts.update(currentAccount.id, { nickname, color: selectedColor });
+    const gender = document.querySelector('input[name="acc-gender"]:checked')?.value || '';
+    const bio = document.getElementById('acc-bio').value.trim();
+    const xUrl  = document.getElementById('acc-x-url').value.trim();
+    const igUrl = document.getElementById('acc-ig-url').value.trim();
+    const fbUrl = document.getElementById('acc-fb-url').value.trim();
+    const birthdate = document.getElementById('acc-birthdate').value;
+    const updated = Storage.Accounts.update(currentAccount.id, {
+      nickname, color: selectedColor, gender, bio, xUrl, igUrl, fbUrl, birthdate
+    });
     Storage.Users.upsert(updated);
-    Storage.Session.set(updated);
+    Storage.Session.set({ ...updated, name: updated.nickname });
     currentAccount = updated;
     showToast('プロフィールを保存しました', 'success');
+  });
+
+  // 自己紹介文字数カウント
+  document.getElementById('acc-bio').addEventListener('input', function() {
+    document.getElementById('bio-count').textContent = this.value.length;
+  });
+
+  // アカウント削除
+  document.getElementById('delete-account-btn').addEventListener('click', async () => {
+    const first = confirm('アカウントを削除しますか？\nすべての投稿履歴も削除されます。この操作は取り消せません。');
+    if (!first) return;
+    const second = confirm('本当に削除しますか？\nこの操作は元に戻せません。');
+    if (!second) return;
+    // 投稿メッセージ削除
+    Storage.Messages.save(Storage.Messages.getAll().filter(m => m.userId !== currentAccount.id));
+    // ユーザーキャッシュ削除
+    Storage.Users.save ? Storage.Users.save(Storage.Users.getAll().filter(u => u.id !== currentAccount.id)) : null;
+    // アカウント削除
+    Storage.Accounts.deleteAccount(currentAccount.id);
+    // セッションクリア
+    Storage.Session.clear();
+    window.location.href = 'index.html';
   });
 
   // ---- アバター画像 ----

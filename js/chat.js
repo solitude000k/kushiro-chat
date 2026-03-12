@@ -72,7 +72,6 @@ function loadRooms(filterCategory = currentFilter) {
       <span class="room-icon">${room.icon || '💬'}</span>
       <div class="room-info">
         <div class="room-name truncate">${escapeHtml(room.name)}</div>
-        <div class="room-creator">作成者: ${escapeHtml(room.createdBy === 'system' ? 'システム' : (room.createdBy || '不明'))}</div>
         <div class="room-category">${room.tags ? room.tags.split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('') : ''}</div>
       </div>
       ${showBadge ? `<span class="room-badge">${msgCount > 99 ? '99+' : msgCount}</span>` : ''}

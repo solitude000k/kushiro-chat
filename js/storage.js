@@ -64,8 +64,9 @@ const Storage = (() => {
 
   function saveToStorage(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
+
   // ============ Accounts ============
-  // { id, email, passwordHash, nickname, color, avatarDataUrl, createdAt, updatedAt }
+  // { id, userId, email, passwordHash, nickname, color, avatarDataUrl, birthdate, gender, bio, xUrl, igUrl, fbUrl, createdAt, updatedAt }
   const Accounts = {
     getAll() { return loadFromStorage(KEYS.ACCOUNTS); },
     save(accounts) { saveToStorage(KEYS.ACCOUNTS, accounts); },
@@ -77,6 +78,7 @@ const Storage = (() => {
       const passwordHash = await sha256(password);
       const account = {
         id: 'a_' + Date.now(),
+        userId: '',  // 登録フォームから渡される
         email: email.toLowerCase(),
         passwordHash,
         nickname,
@@ -107,6 +109,9 @@ const Storage = (() => {
       return this.findById(id);
     },
 
+    deleteAccount(id) {
+      this.save(this.getAll().filter(a => a.id !== id));
+    },
     toCSV() {
       return toCSV(
         this.getAll().map(a => ({ ...a, avatarDataUrl: a.avatarDataUrl ? '[IMAGE]' : '' })),

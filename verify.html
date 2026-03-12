@@ -200,6 +200,7 @@
         // 新規作成
         finalAccount = {
           id:           'a_' + Date.now(),
+          userId:       account.userId || '',
           email:        account.email,
           passwordHash: account.passwordHash,
           nickname:     account.nickname,
@@ -215,7 +216,7 @@
       }
 
       Storage.Users.upsert(finalAccount);
-      Storage.Session.set(finalAccount);
+      Storage.Session.set({ ...finalAccount, name: finalAccount.nickname });
       showSuccess(finalAccount);
 
     } catch (err) {

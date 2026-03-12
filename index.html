@@ -214,6 +214,16 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label" for="reg-userid">ユーザーID <span style="color:#ef5350">*</span></label>
+          <input type="text" id="reg-userid" class="form-input"
+            placeholder="例：kushiro_taro（半角英数字・アンダーバーのみ）" maxlength="30" autocomplete="off" spellcheck="false"
+            oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,''); checkUserIdAvail(this.value)">
+          <p class="text-xs text-muted" style="margin-top:3px;">3〜30文字、半角英数字とアンダーバー（_）のみ使用可</p>
+          <div class="field-error" id="reg-userid-err"></div>
+          <div class="field-ok"    id="reg-userid-ok" style="display:none;">✓ このIDは使用できます</div>
+        </div>
+
+        <div class="form-group">
           <label class="form-label" for="reg-email">Gmailアドレス <span style="color:#ef5350">*</span></label>
           <input type="email" id="reg-email" class="form-input"
             placeholder="example@gmail.com" autocomplete="email">
@@ -336,6 +346,20 @@
   // ---- アバタープレビュー更新 ----
   let selectedColor = '#f4a620';
   document.getElementById('reg-nickname').addEventListener('input', updatePreview);
+
+  function checkUserIdAvail(val) {
+    const errEl = document.getElementById('reg-userid-err');
+    const okEl  = document.getElementById('reg-userid-ok');
+    okEl.style.display = 'none';
+    if (!val || val.length < 3) { showField('reg-userid-err', ''); return; }
+    if (!/^[a-zA-Z0-9_]+$/.test(val)) { showField('reg-userid-err', '半角英数字とアンダーバーのみ使用できます'); return; }
+    if (Storage.Accounts.getAll().some(a => a.userId === val)) {
+      showField('reg-userid-err', 'このIDはすでに使用されています');
+    } else {
+      showField('reg-userid-err', '');
+      okEl.style.display = 'block';
+    }
+  }
   document.getElementById('reg-email').addEventListener('input', updatePreview);
   function updatePreview() {
     const name  = document.getElementById('reg-nickname').value.trim();
@@ -451,7 +475,12 @@
     showField('reg-pw-err', '');
     showField('reg-pw2-err', '');
 
+    const userId = document.getElementById('reg-userid').value.trim();
+    showField('reg-userid-err', '');
     if (!nickname) { showField('reg-nickname-err', 'ニックネームを入力してください'); valid = false; }
+    if (!userId || userId.length < 3) { showField('reg-userid-err', 'ユーザーIDは3文字以上入力してください'); valid = false; }
+    else if (!/^[a-zA-Z0-9_]+$/.test(userId)) { showField('reg-userid-err', '半角英数字とアンダーバーのみ使用できます'); valid = false; }
+    else if (Storage.Accounts.getAll().some(a => a.userId === userId)) { showField('reg-userid-err', 'このIDはすでに使用されています'); valid = false; }
     if (!isGmail(email)) { showField('reg-email-err', '@gmail.com のアドレスを入力してください'); valid = false; }
     if (pw.length < 8) { showField('reg-pw-err', 'パスワードは8文字以上にしてください'); valid = false; }
     if (pw !== pw2) { showField('reg-pw2-err', 'パスワードが一致しません'); valid = false; }
@@ -477,7 +506,7 @@
           'Content-Type': 'application/json',
           'X-API-Secret': window.KUSHIRO_API_SECRET || '',
         },
-        body: JSON.stringify({ email, nickname, passwordHash, color: selectedColor }),
+        body: JSON.stringify({ email, nickname, userId, passwordHash, color: selectedColor }),
       });
 
       const data = await res.json();
