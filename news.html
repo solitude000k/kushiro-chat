@@ -202,6 +202,51 @@
     .error-card .error-icon { font-size: 2.5rem; margin-bottom: 16px; display: block; }
     .error-card h3 { color: #ef5350; font-family: var(--font-serif); margin-bottom: 10px; }
 
+    /* ===== 天気ウィジェット ===== */
+    .weather-widget {
+      display: flex; align-items: stretch; justify-content: center;
+      gap: 0; margin-top: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; overflow: hidden;
+      max-width: 480px; margin-left: auto; margin-right: auto;
+      backdrop-filter: blur(8px);
+    }
+    .weather-left {
+      flex: 1; padding: 14px 18px;
+      display: flex; flex-direction: column; gap: 8px;
+      border-right: 1px solid rgba(255,255,255,0.07);
+    }
+    .weather-right {
+      padding: 14px 20px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      min-width: 100px;
+    }
+    .weather-stat {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .78rem;
+    }
+    .weather-stat-label {
+      color: var(--text-muted); font-size: .68rem; letter-spacing: .04em;
+      min-width: 56px;
+    }
+    .weather-stat-value {
+      color: var(--text-primary); font-weight: 600; font-size: .82rem;
+    }
+    .weather-stat-value.rain  { color: #64b5f6; }
+    .weather-stat-value.humid { color: var(--cyan); }
+    .weather-stat-value.wind  { color: #a5d6a7; }
+    .weather-icon-large { font-size: 2.4rem; line-height: 1; }
+    .weather-cond-text { font-size: .72rem; color: var(--text-muted); text-align: center; }
+    .weather-temp { font-size: 1.1rem; font-weight: 700; color: var(--amber); }
+    .weather-loading { opacity: .4; font-size: .75rem; color: var(--text-muted); text-align:center; padding: 16px; }
+    /* 説明文の追加行 */
+    .page-desc-sub {
+      margin-top: 8px; font-size: .8rem;
+      color: var(--cyan); opacity: .85; letter-spacing: .02em;
+    }
+
     /* ===== キャッシュ注記 ===== */
     .cache-note {
       text-align: center; font-size: .72rem; color: var(--text-muted);
@@ -304,6 +349,11 @@
       釧路市・釧路町の最新情報をリアルタイムで収集。<br>
       事件・交通・イベント情報を30分ごとに自動更新しています。
     </p>
+    <p class="page-desc-sub">SNSやWebを通じて細かなニュースも全て収集！</p>
+    <!-- 天気ウィジェット -->
+    <div class="weather-widget" id="weather-widget">
+      <div class="weather-loading" style="width:100%;">🌡 天気情報を取得中...</div>
+    </div>
   </div>
 </div>
 
@@ -561,7 +611,72 @@ function toggleRaw(btn) {
     ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Gemini 生テキストを表示'
     : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Gemini 生テキストを閉じる';
 }
+// ---- 天気取得 (Open-Meteo, APIキー不要) ----
+async function loadWeather() {
+  const WW = {
+    0:'☀️', 1:'🌤', 2:'⛅', 3:'☁️',
+    45:'🌫', 48:'🌫',
+    51:'🌦', 53:'🌦', 55:'🌧',
+    61:'🌧', 63:'🌧', 65:'🌧',
+    71:'🌨', 73:'🌨', 75:'❄️',
+    80:'🌦', 81:'🌧', 82:'⛈',
+    95:'⛈', 96:'⛈', 99:'⛈',
+  };
+  const WD = {
+    0:'快晴', 1:'ほぼ晴れ', 2:'一部曇り', 3:'曇り',
+    45:'霧', 48:'霧氷',
+    51:'霧雨（弱）', 53:'霧雨', 55:'霧雨（強）',
+    61:'小雨', 63:'雨', 65:'大雨',
+    71:'小雪', 73:'雪', 75:'大雪',
+    80:'にわか雨（弱）', 81:'にわか雨', 82:'激しいにわか雨',
+    95:'雷雨', 96:'雷雨（雹）', 99:'激しい雷雨',
+  };
+  try {
+    const res = await fetch(
+      'https://api.open-meteo.com/v1/forecast' +
+      '?latitude=43.0&longitude=144.4' +
+      '&current=temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m,weather_code' +
+      '&wind_speed_unit=ms&timezone=Asia%2FTokyo'
+    );
+    if (!res.ok) throw new Error('weather fetch failed');
+    const d = await res.json();
+    const cur = d.current;
+    const code  = cur.weather_code ?? 0;
+    const icon  = WW[code] ?? '🌡';
+    const cond  = WD[code] ?? '不明';
+    const temp  = cur.temperature_2m != null ? `${cur.temperature_2m.toFixed(1)}℃` : '--';
+    const rain  = cur.precipitation_probability != null ? `${cur.precipitation_probability}%` : '--';
+    const humid = cur.relative_humidity_2m != null ? `${cur.relative_humidity_2m}%` : '--';
+    const wind  = cur.wind_speed_10m != null ? `${cur.wind_speed_10m.toFixed(1)} m/s` : '--';
+
+    document.getElementById('weather-widget').innerHTML = `
+      <div class="weather-left">
+        <div class="weather-stat">
+          <span class="weather-stat-label">☔ 降水確率</span>
+          <span class="weather-stat-value rain">${rain}</span>
+        </div>
+        <div class="weather-stat">
+          <span class="weather-stat-label">💧 湿度</span>
+          <span class="weather-stat-value humid">${humid}</span>
+        </div>
+        <div class="weather-stat">
+          <span class="weather-stat-label">💨 風速</span>
+          <span class="weather-stat-value wind">${wind}</span>
+        </div>
+      </div>
+      <div class="weather-right">
+        <span class="weather-icon-large">${icon}</span>
+        <span class="weather-temp">${temp}</span>
+        <span class="weather-cond-text">${cond}</span>
+      </div>`;
+  } catch(e) {
+    document.getElementById('weather-widget').innerHTML =
+      '<div class="weather-loading" style="width:100%;">天気情報を取得できませんでした</div>';
+  }
+}
+
 // 初回読み込み
+loadWeather();
 loadNews();
 </script>
 </body>
