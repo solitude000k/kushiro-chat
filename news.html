@@ -617,17 +617,14 @@ function toggleRaw(btn) {
   btn.textContent = open ? '📄 Gemini 生テキストを表示' : '📄 Gemini 生テキストを閉じる';
 }
 // ---- 管理者チェックと更新ボタン制御 ----
-async function checkAdminAndShowRefresh() {
+function checkAdminAndShowRefresh() {
   try {
     const session = Storage.Session.get();
-    if (!session) return;
-    const res = await API.get('/api/accounts/me');
-    if (res && res.ok && res.account && res.account.userId === 'Administrator') {
-      const btn = document.getElementById('admin-refresh-btn');
-      if (btn) btn.style.display = 'flex';
-      const rawBtn = document.getElementById('raw-toggle-btn');
-      if (rawBtn) rawBtn.style.display = 'inline-flex';
-    }
+    if (!session || session.userId !== 'Administrator') return;
+    const btn = document.getElementById('admin-refresh-btn');
+    if (btn) btn.style.display = 'flex';
+    const rawBtn = document.getElementById('raw-toggle-btn');
+    if (rawBtn) rawBtn.style.display = 'inline-flex';
   } catch(e) { /* 管理者でなければ何もしない */ }
 }
 
