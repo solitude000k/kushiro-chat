@@ -129,18 +129,12 @@
 }
 .room-category { font-size: 0.7rem; color: var(--text-muted); }
 .room-badge {
-  min-width: 18px;
-  height: 18px;
+  width: 8px;
+  height: 8px;
   background: var(--amber);
-  color: var(--bg-deep);
-  border-radius: 999px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 5px;
+  border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(244,166,32,0.6);
 }
 
 /* Category filter */

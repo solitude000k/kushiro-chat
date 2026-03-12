@@ -8,7 +8,8 @@ let isAdmin     = false;
 let pendingMedia = [];
 let pollTimer    = null;
 let currentFilter = 'all';
-const visitedRooms = new Set();
+const visitedRooms  = new Set();
+const renderedMsgIds = new Set(); // アニメーション済みメッセージID
 
 document.addEventListener('DOMContentLoaded', async () => {
   currentUser = Storage.Session.get();
@@ -91,7 +92,7 @@ async function loadRooms(filterCategory) {
         <div class="room-name truncate">${escapeHtml(room.name)}</div>
         <div class="room-category">${room.tags ? room.tags.split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('') : ''}</div>
       </div>
-      ${showBadge ? `<span class="room-badge">${cnt > 99 ? '99+' : cnt}</span>` : ''}
+      ${showBadge ? `<span class="room-badge"></span>` : ''}
       ${isCreator ? `<button class="room-delete-btn" data-room-id="${room.id}" title="掲示板を削除">✕</button>` : ''}
     `;
     item.addEventListener('click', () => selectRoom(room.id));
@@ -135,6 +136,17 @@ async function updateCategoryFilters() {
 // ---- ルーム選択 ----
 async function selectRoom(roomId) {
   visitedRooms.add(roomId);
+
+  // バッジを即時DOM削除
+  document.querySelectorAll('.room-item').forEach(el => {
+    if (el.dataset.roomId === roomId) {
+      const badge = el.querySelector('.room-badge');
+      if (badge) badge.remove();
+    }
+  });
+
+  // ルーム切替時はアニメーション履歴をリセット
+  if (!currentRoom || currentRoom.id !== roomId) renderedMsgIds.clear();
   const rooms = (await API.listRooms()).rooms || [];
   const room  = rooms.find(r => r.id === roomId);
   if (!room) return;
@@ -180,6 +192,13 @@ async function refreshMessages() {
 
     row.className = `message-row${isOwn ? ' own' : ''}`;
     row.dataset.msgId = msg.id;
+
+    // 初回表示のみアニメーション、既表示は静的に
+    if (renderedMsgIds.has(msg.id)) {
+      row.style.opacity = '1';
+      row.style.animation = 'none';
+    }
+    renderedMsgIds.add(msg.id);
 
     // アバター(直前と同じユーザーなら省略)
     const showAvatar = msg.userId !== lastUserId;
