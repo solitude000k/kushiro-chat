@@ -347,15 +347,22 @@ async function loadNews(forceRefresh = false) {
 
     dot.className = 'status-dot';
     const cached = data.cached;
+    const stale  = data.stale;
     const fetchTime = data.fetchedAt ? new Date(data.fetchedAt) : new Date();
     const timeStr = fetchTime.toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
-    txt.textContent = cached ? `キャッシュ: ${timeStr}` : `最終更新: ${timeStr}`;
-    txt.style.color = 'var(--text-muted)';
+    txt.textContent = stale ? `⚠ 古いキャッシュ: ${timeStr}` : cached ? `キャッシュ: ${timeStr}` : `最終更新: ${timeStr}`;
+    txt.style.color = stale ? '#ef5350' : 'var(--text-muted)';
 
-    if (cached) {
+    if (stale) {
+      const age = Math.floor((Date.now() - (data.fetchedAt||0)) / 60000);
+      note.textContent = `⚠ API制限中のため、約${age}分前の情報を表示しています。しばらくしてから「更新」ボタンをお試しください。`;
+      note.style.display = '';
+      note.style.color = '#ef5350';
+    } else if (cached) {
       const age = Math.floor((Date.now() - (data.fetchedAt||0)) / 60000);
       note.textContent = `⏱ このデータは約${age}分前に取得されたものです。30分ごとに自動更新されます。`;
       note.style.display = '';
+      note.style.color = 'var(--text-muted)';
     } else {
       note.style.display = 'none';
     }
