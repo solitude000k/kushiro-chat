@@ -466,6 +466,7 @@ async function loadNews(forceRefresh = false) {
 
     renderNews(data);
     checkAdminAndShowRefresh(); // rawボタン再チェック
+    _lastFetchedAt = data.fetchedAt || Date.now(); // 自動更新判定用
 
     dot.className = 'status-dot';
     const cached = data.cached;
@@ -747,6 +748,33 @@ async function loadWeather() {
 loadWeather();
 loadNews();
 checkAdminAndShowRefresh();
+
+// ---- 自動更新: 00分・30分の境界を検知して再取得 ----
+let _lastFetchedAt = 0; // 直近に表示したデータの fetchedAt
+
+// 30分ごとに次の :00/:30 境界でポーリング
+function scheduleNextRefresh() {
+  const now  = new Date();
+  const mins = now.getMinutes();
+  // 次の :00 または :30 まで何ミリ秒か
+  const toNext = ((mins < 30 ? 30 : 60) - mins) * 60 * 1000
+               - now.getSeconds() * 1000
+               - now.getMilliseconds()
+               + 90 * 1000; // Cron実行後のGemini処理待ち 90秒マージン
+  setTimeout(async () => {
+    await loadNews();          // サーバーに最新キャッシュを問い合わせ
+    scheduleNextRefresh();     // 次の境界を予約
+  }, toNext);
+}
+scheduleNextRefresh();
+
+// タブを再表示した際にデータが古ければ再取得（30分以上経過）
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden && _lastFetchedAt) {
+    const age = Date.now() - _lastFetchedAt;
+    if (age > 29 * 60 * 1000) await loadNews();
+  }
+});
 </script>
   <script src="js/effects.js"></script>
 </body>
