@@ -437,6 +437,15 @@ function setupEventListeners() {
   // メディア
   document.getElementById('attach-image-btn')?.addEventListener('click', () => handleFileSelect('image'));
 
+  // ハンバーガーメニュー（モバイル）
+  const sidebarToggle  = document.getElementById('sidebar-toggle');
+  const sidebar        = document.querySelector('.sidebar');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+  function openSidebar()  { sidebar?.classList.add('mobile-open');    sidebarOverlay?.classList.add('active'); }
+  function closeSidebar() { sidebar?.classList.remove('mobile-open'); sidebarOverlay?.classList.remove('active'); }
+  sidebarToggle?.addEventListener('click', e => { e.stopPropagation(); sidebar?.classList.contains('mobile-open') ? closeSidebar() : openSidebar(); });
+  sidebarOverlay?.addEventListener('click', closeSidebar);
+
   // ヘッダー ドロップダウン
   const trigger  = document.getElementById('user-menu-trigger');
   const dropdown = document.getElementById('user-dropdown');

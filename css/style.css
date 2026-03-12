@@ -3,7 +3,7 @@
    テーマ: 釧路の夜景・港の灯り・霧
 ================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;500;700&family=Shippori+Mincho:wght@400;500;700&display=swap');
 
 /* ---- CSS Variables ---- */
 :root {
@@ -43,8 +43,8 @@
   --radius-lg:     20px;
   --radius-xl:     28px;
 
-  --font-serif:    'Noto Serif JP', 'Georgia', serif;
-  --font-sans:     'Noto Sans JP', 'Helvetica Neue', sans-serif;
+  --font-serif:    'Shippori Mincho', 'Georgia', serif;
+  --font-sans:     'Zen Kaku Gothic New', 'Helvetica Neue', sans-serif;
 
   --transition:    0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -59,6 +59,7 @@ body {
   min-height: 100vh;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.03em;
 }
 
 /* ---- Scrollbar ---- */
@@ -72,8 +73,8 @@ body {
 
 /* ---- Typography ---- */
 h1, h2, h3 { font-family: var(--font-serif); letter-spacing: 0.02em; }
-h1 { font-size: 2.2rem; font-weight: 700; }
-h2 { font-size: 1.5rem; font-weight: 500; }
+h1 { font-size: 2.2rem; font-weight: 600; }
+h2 { font-size: 1.5rem; font-weight: 500; letter-spacing: 0.04em; }
 h3 { font-size: 1.1rem; font-weight: 500; }
 p  { font-size: 0.9rem; color: var(--text-secondary); }
 
