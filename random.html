@@ -518,12 +518,14 @@
     <!-- 広告スロット -->
     <div class="ad-slot-wrap">
       <span class="ad-slot-label">advertisement</span>
+      <!-- GoogleAdSense01 -->
       <ins class="adsbygoogle"
-           style="display:block;width:100%;min-height:250px;"
+           style="display:block"
            data-ad-client="ca-pub-9350505956759257"
-           data-ad-slot="auto"
+           data-ad-slot="2112065815"
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
     <!-- カウントダウン -->
@@ -655,13 +657,7 @@ function openAdModal() {
   adBar.style.transition = 'none';
   adBar.style.width = '100%';
 
-  // AdSense再挿入（モーダル開くたびに広告をリフレッシュ）
-  try {
-    const ins = adOverlay.querySelector('.adsbygoogle');
-    if (ins && !ins.dataset.adsbygoogleStatus) {
-      (adsbygoogle = window.adsbygoogle || []).push({});
-    }
-  } catch(e) {}
+  // AdSenseは <ins> タグのインラインscriptで自動初期化済み
 
   // カウントダウン開始（5秒）
   let remaining = 5;
