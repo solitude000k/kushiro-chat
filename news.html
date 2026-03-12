@@ -208,6 +208,54 @@
       padding: 16px; border-top: 1px solid var(--border); margin-top: 24px;
     }
 
+    /* ===== リッチ表示 ===== */
+    /* 時刻バッジ */
+    .time-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: .68rem; font-weight: 600; letter-spacing: .04em;
+      color: var(--cyan); background: rgba(77,208,225,0.1);
+      border: 1px solid rgba(77,208,225,0.2);
+      padding: 1px 7px; border-radius: 999px; flex-shrink: 0;
+    }
+    /* キーワードハイライト */
+    .kw-high   { color: #ef5350; font-weight: 700; }
+    .kw-warn   { color: var(--amber); font-weight: 600; }
+    .kw-info   { color: var(--cyan); }
+    /* アイテムヘッダー行 */
+    .news-item-header {
+      display: flex; align-items: flex-start;
+      gap: 7px; flex-wrap: wrap; margin-bottom: 7px;
+    }
+    .news-item-title-text { flex: 1; min-width: 0; font-size: .9rem; font-weight: 600; color: var(--text-primary); line-height: 1.5; }
+    /* 空アイテム */
+    .news-item.empty-item { opacity: .45; background: transparent; border-style: dashed; }
+    .news-item.empty-item::before { display: none; }
+    /* アイテムカウント（件数） */
+    .section-count { margin-left: auto; font-size: .7rem; background: var(--bg-elevated); color: var(--text-muted); padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
+    /* 高urgencyアイテム：左ボーダー脈動 */
+    .news-item.urgency-high { animation: borderPulse 3s ease-in-out infinite; }
+    @keyframes borderPulse {
+      0%,100% { border-color: rgba(239,83,80,.25); }
+      50%      { border-color: rgba(239,83,80,.55); }
+    }
+    /* rawTextトグル */
+    .raw-toggle {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 24px; padding: 7px 14px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; font-size: .75rem; color: var(--text-muted);
+      cursor: pointer; transition: all .18s;
+    }
+    .raw-toggle:hover { color: var(--amber); border-color: rgba(244,166,32,.3); }
+    .raw-box {
+      display: none; margin-top: 10px; padding: 14px 16px;
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: 10px; font-size: .75rem; color: var(--text-muted);
+      line-height: 1.8; white-space: pre-wrap; word-break: break-all;
+      max-height: 320px; overflow-y: auto;
+    }
+
+    /* レスポンシブ */
     /* レスポンシブ */
     @media (max-width: 640px) {
       .top-header { padding: 0 14px; }
@@ -378,6 +426,25 @@ async function loadNews(forceRefresh = false) {
   }
 }
 
+// ---- キーワードハイライト定義 ----
+const HIGHLIGHT = [
+  { words: ['通行止め','事故','火災','警報','逮捕','緊急','危険','地震','津波','重体','死亡','爆発','強盗','不審'], cls: 'kw-high' },
+  { words: ['渋滞','工事','規制','遅延','遅れ','注意','運休','徐行','禁止','閉鎖'], cls: 'kw-warn' },
+  { words: ['開催','募集','お知らせ','案内','イベント','予定','無料'], cls: 'kw-info' },
+];
+
+function highlightText(text) {
+  if (!text) return '';
+  let t = escHtml(text);
+  for (const { words, cls } of HIGHLIGHT) {
+    for (const w of words) {
+      const re = new RegExp(escHtml(w), 'g');
+      t = t.replace(re, `<span class="${cls}">${escHtml(w)}</span>`);
+    }
+  }
+  return t;
+}
+
 // 固定4カテゴリ定義
 const FIXED_CATS = [
   { key: '交通・インフラ情報',    icon: '🚗', label: '交通・インフラ情報', sub: '(1時間以内の更新を含む)' },
@@ -390,15 +457,13 @@ function renderNews(data) {
   const area = document.getElementById('news-content');
   const rawSections = data.sections || [];
 
-  // Geminiが返したセクションをカテゴリ名で分類（部分一致でもマッチ）
-  function findItems(catKey) {
-    // 完全一致優先、次に部分一致
-    const exact = rawSections.find(s => s.category === catKey);
-    if (exact) return exact.items || [];
+  function findSection(catKey) {
+    const exact   = rawSections.find(s => s.category === catKey);
+    if (exact) return exact;
     const partial = rawSections.find(s =>
       s.category && (s.category.includes(catKey.split('・')[0]) || catKey.includes(s.category.split('・')[0]))
     );
-    return partial ? (partial.items || []) : [];
+    return partial || null;
   }
 
   if (!rawSections.length) {
@@ -406,42 +471,76 @@ function renderNews(data) {
     return;
   }
 
+  const urgLabels = { high: '速報', normal: '情報', low: '参考' };
+
   let html = '';
   FIXED_CATS.forEach(cat => {
-    const items = findItems(cat.key);
-    const badges = { high:'速報', normal:'情報', low:'参考' };
+    const sec   = findSection(cat.key);
+    const items = sec ? (sec.items || []) : [];
+    const realItems  = items.filter(i => !i.empty);
+    const emptyItems = items.filter(i => i.empty);
+
     html += `
       <div class="news-section">
         <div class="section-header">
           <span class="section-icon">${cat.icon}</span>
           <span class="section-name">${cat.label}</span>
-          ${cat.sub ? `<span style="font-size:.7rem;color:var(--text-muted);margin-left:4px;">${cat.sub}</span>` : ''}
-          <span class="section-count">${items.length}件</span>
+          ${cat.sub ? `<span style="font-size:.68rem;color:var(--text-muted);margin-left:2px;">${cat.sub}</span>` : ''}
+          <span class="section-count">${realItems.length}件</span>
         </div>
-        <div class="news-items">
-          ${items.length === 0
-            ? `<div class="news-item urgency-low" style="opacity:.6;">
-                <div class="news-item-title"><span class="urgency-badge low">参考</span>現在確認できる情報はありません</div>
-               </div>`
-            : items.map(item => {
-                const urg = item.urgency || 'normal';
-                return `
-                  <div class="news-item urgency-${escHtml(urg)}">
-                    <div class="news-item-title">
-                      <span class="urgency-badge ${escHtml(urg)}">${badges[urg]||'情報'}</span>
-                      ${escHtml(item.title||'')}
-                    </div>
-                    <p class="news-item-detail">${escHtml(item.detail||'')}</p>
-                  </div>`;
-              }).join('')
-          }
+        <div class="news-items">`;
+
+    if (realItems.length === 0) {
+      html += `
+          <div class="news-item urgency-low empty-item">
+            <div class="news-item-header">
+              <span class="urgency-badge low">参考</span>
+              <span class="news-item-title-text" style="color:var(--text-muted);">現在確認できる情報はありません</span>
+            </div>
+          </div>`;
+    } else {
+      realItems.forEach(item => {
+        const urg = item.urgency || 'normal';
+        html += `
+          <div class="news-item urgency-${escHtml(urg)}">
+            <div class="news-item-header">
+              <span class="urgency-badge ${escHtml(urg)}">${urgLabels[urg] || '情報'}</span>
+              ${item.time ? `<span class="time-badge">🕐 ${escHtml(item.time)}</span>` : ''}
+              <span class="news-item-title-text">${highlightText(item.title)}</span>
+            </div>
+            ${item.detail ? `<p class="news-item-detail">${highlightText(item.detail)}</p>` : ''}
+          </div>`;
+      });
+    }
+
+    html += `
         </div>
       </div>`;
   });
 
+  // rawText デバッグ表示トグル
+  if (data.rawText) {
+    html += `
+      <div style="text-align:center;">
+        <button class="raw-toggle" onclick="toggleRaw(this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Gemini 生テキストを表示
+        </button>
+        <div class="raw-box" id="raw-box">${escHtml(data.rawText)}</div>
+      </div>`;
+  }
+
   area.innerHTML = html;
 }
 
+function toggleRaw(btn) {
+  const box = document.getElementById('raw-box');
+  const open = box.style.display === 'block';
+  box.style.display = open ? 'none' : 'block';
+  btn.innerHTML = open
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Gemini 生テキストを表示'
+    : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Gemini 生テキストを閉じる';
+}
 // 初回読み込み
 loadNews();
 </script>
