@@ -340,6 +340,13 @@ function renderMediaPreview() {
 // ---- 掲示板作成モーダル ----
 function openNewRoomModal() {
   document.getElementById('new-room-modal')?.classList.add('active');
+  // アイコン選択リセット（最初のボタンを選択状態に）
+  document.querySelectorAll('.icon-option').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === 0);
+  });
+  // タグカウントリセット
+  const countEl = document.getElementById('tag-count');
+  if (countEl) { countEl.textContent = '0'; countEl.style.color = 'var(--text-muted)'; }
 }
 function closeNewRoomModal() {
   document.getElementById('new-room-modal')?.classList.remove('active');
@@ -347,10 +354,25 @@ function closeNewRoomModal() {
 
 // ---- 掲示板作成 ----
 async function createRoom() {
-  const name = document.getElementById('new-room-name')?.value.trim();
-  const tags = document.getElementById('new-room-tags')?.value.trim();
-  const desc = document.getElementById('new-room-desc')?.value.trim();
-  const icon = document.getElementById('new-room-icon')?.value.trim() || '💬';
+  const rawName = document.getElementById('new-room-name')?.value.trim();
+  const rawTags = document.getElementById('new-room-tags')?.value.trim();
+  const rawDesc = document.getElementById('new-room-desc')?.value.trim();
+  const selectedIconBtn = document.querySelector('.icon-option.selected');
+  const icon = selectedIconBtn?.dataset.icon || '💬';
+
+  // クライアント側バリデーション
+  const forbidden = /[<>&"'`\\{}()\[\]=;]/;
+  if (!rawName) { showToast('掲示板名を入力してください', 'error'); return; }
+  if (forbidden.test(rawName)) { showToast('掲示板名に使用できない文字が含まれています', 'error'); return; }
+  if (rawTags && forbidden.test(rawTags)) { showToast('タグに使用できない文字が含まれています', 'error'); return; }
+  if (rawDesc && forbidden.test(rawDesc)) { showToast('説明に使用できない文字が含まれています', 'error'); return; }
+  // タグ最大3つチェック
+  const tagParts = rawTags ? rawTags.split(',').filter(t => t.trim()) : [];
+  if (tagParts.length > 3) { showToast('タグは最大3つまでです', 'error'); return; }
+
+  const name = rawName;
+  const tags = tagParts.join(',');
+  const desc = rawDesc;
   if (!name) { showToast('掲示板名を入力してください', 'error'); return; }
 
   const res = await API.createRoom({ name, tags, description: desc, icon });
@@ -432,6 +454,13 @@ function setupEventListeners() {
   document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModal);
   document.getElementById('new-room-cancel')?.addEventListener('click', closeNewRoomModal);
   document.getElementById('new-room-submit')?.addEventListener('click', createRoom);
+  // アイコン選択
+  document.querySelectorAll('.icon-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.icon-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
 }
 
 // ---- プロフィールモーダル ----
@@ -576,6 +605,29 @@ function renderAvatar(el, user) {
 }
 
 // ---- ユーティリティ ----
+// ---- 入力サニタイズ ----
+// 特殊文字（<>&"'`など）を除去（タグ名・説明用）
+function sanitizeTextInput(el) {
+  el.value = el.value.replace(/[<>&"'`\\{}()\[\]=;]/g, '');
+}
+// タグ入力: 特殊文字除去 + コンマ最大2個（タグ最大3つ）
+function sanitizeTagInput(el) {
+  // 特殊文字を除去（カンマは許可）
+  el.value = el.value.replace(/[<>&"'`\\{}()\[\]=;]/g, '');
+  // コンマを最大2個に制限
+  const parts = el.value.split(',');
+  if (parts.length > 3) {
+    el.value = parts.slice(0, 3).join(',');
+  }
+  // カウント更新
+  const countEl = document.getElementById('tag-count');
+  if (countEl) {
+    const filled = parts.filter(p => p.trim().length > 0).length;
+    countEl.textContent = Math.min(filled, 3);
+    countEl.style.color = filled >= 3 ? '#ef5350' : 'var(--text-muted)';
+  }
+}
+
 function escapeHtml(str) {
   return String(str || '').replace(/[&<>"']/g, c =>
     ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c])

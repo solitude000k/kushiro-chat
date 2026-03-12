@@ -220,12 +220,20 @@
           <button type="button" class="icon-option" data-icon="🌸">🌸</button>
           <button type="button" class="icon-option" data-icon="💡">💡</button>
           <button type="button" class="icon-option" data-icon="🎉">🎉</button>
+          <button type="button" class="icon-option" data-icon="🐻">🐻</button>
+          <button type="button" class="icon-option" data-icon="🌺">🌺</button>
+          <button type="button" class="icon-option" data-icon="🏠">🏠</button>
+          <button type="button" class="icon-option" data-icon="🎵">🎵</button>
+          <button type="button" class="icon-option" data-icon="⚽">⚽</button>
+          <button type="button" class="icon-option" data-icon="📸">📸</button>
+          <button type="button" class="icon-option" data-icon="🐕">🐕</button>
+          <button type="button" class="icon-option" data-icon="🌙">🌙</button>
         </div>
       </div>
 
       <div class="form-group">
         <label class="form-label" for="new-room-name">掲示板名 <span style="color:#ef5350">*</span></label>
-        <input type="text" id="new-room-name" class="form-input" placeholder="例：釧路グルメ情報" maxlength="40">
+        <input type="text" id="new-room-name" class="form-input" placeholder="例：釧路グルメ情報" maxlength="40" oninput="sanitizeTextInput(this)">
       </div>
 
       <div class="form-group">
@@ -233,13 +241,13 @@
         <input type="text" id="new-room-tags" class="form-input"
           placeholder="例：グルメ,海鮮,ランチ"
           maxlength="100"
-          oninput="sanitizeTagInput(this)">
-        <p style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">使用可能: 日本語・英数字・カンマ（特殊文字は自動で除去）</p>
+          oninput="sanitizeTagInput(this)" maxlength="60">
+        <p id="tag-hint" style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">タグ: <span id="tag-count">0</span>/3個（カンマ区切り・最大3つ）</p>
       </div>
 
       <div class="form-group">
         <label class="form-label" for="new-room-desc">説明</label>
-        <textarea id="new-room-desc" class="form-textarea" placeholder="この掲示板について説明してください" rows="2" maxlength="200"></textarea>
+        <textarea id="new-room-desc" class="form-textarea" placeholder="この掲示板について説明してください" rows="2" maxlength="200" oninput="sanitizeTextInput(this)"></textarea>
       </div>
 
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
