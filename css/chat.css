@@ -653,3 +653,11 @@
   color: rgba(255,255,255,0.18);
   cursor: not-allowed;
 }
+
+/* ---- 管理者削除ボタン ---- */
+.admin-delete-btn {
+  color: rgba(239, 83, 80, 0.6) !important;
+}
+.admin-delete-btn:hover {
+  color: #ef5350 !important;
+}

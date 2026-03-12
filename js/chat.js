@@ -4,6 +4,9 @@
 
 let currentRoom = null;
 let currentUser = null;
+let isAdmin = false;
+let adminAuthExpiry = 0; // 管理者認証の有効期限 (ms)
+const ADMIN_AUTH_TTL = 5 * 60 * 1000; // 5分
 let pendingMedia = []; // { type, data, name }
 let pendingTags = [];
 let typingTimer = null;
@@ -47,6 +50,8 @@ function initUI() {
   const uname = document.getElementById('header-username');
   renderAvatar(avatar, currentUser);
   uname.textContent = currentUser.name;
+  // 管理者フラグ
+  isAdmin = Storage.Accounts.isAdmin(currentUser);
 }
 
 
@@ -92,7 +97,7 @@ function loadRooms(filterCategory = currentFilter) {
     item.dataset.roomId = room.id;
     const msgCount = Storage.Messages.getByRoom(room.id).length;
     const showBadge = msgCount > 0 && !visitedRooms.has(room.id);
-    const isCreator = room.createdBy === currentUser.name && room.createdBy !== 'system';
+    const isCreator = (room.createdBy === currentUser.name || isAdmin) && room.createdBy !== 'system';
     item.innerHTML = `
       <span class="room-icon">${room.icon || '💬'}</span>
       <div class="room-info">
@@ -317,13 +322,23 @@ function renderMessages(messages, container) {
     bubble.innerHTML = content;
     bubbleWrap.appendChild(bubble);
 
-    // 削除ボタンをバブルの横に配置（自分のメッセージのみ）
-    if (isOwn) {
+    // 削除ボタンをバブルの横に配置（自分 or 管理者）
+    if (isOwn || isAdmin) {
       const delBtn = document.createElement('button');
-      delBtn.className = 'msg-delete-btn';
-      delBtn.title = 'メッセージを削除';
+      delBtn.className = 'msg-delete-btn' + (isAdmin && !isOwn ? ' admin-delete-btn' : '');
+      delBtn.title = isAdmin && !isOwn ? '[管理者] 削除' : 'メッセージを削除';
       delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
-      delBtn.addEventListener('click', () => deleteMessage(msg.id));
+      delBtn.addEventListener('click', () => {
+        if (isAdmin && !isOwn) {
+          adminAction('このメッセージを削除しますか？（管理者操作）', () => {
+            Storage.Messages.adminDelete(msg.id);
+            refreshMessages();
+            showToast('メッセージを削除しました（管理者）', 'success');
+          });
+        } else {
+          deleteMessage(msg.id);
+        }
+      });
       row.appendChild(bubbleWrap);
       row.appendChild(delBtn);
     } else {
@@ -789,4 +804,79 @@ function startDM(targetUserId, targetName) {
   const param = targetUserId ? encodeURIComponent(targetUserId) : '';
   const nameParam = encodeURIComponent(targetName);
   window.location.href = `dm.html?to=${param}&name=${nameParam}`;
+}
+
+// ================================================================
+// 管理者認証モーダル
+// ================================================================
+
+// adminAction: 管理者パスワード再認証後にコールバックを実行
+function adminAction(message, callback) {
+  // 5分以内に認証済みならそのまま実行
+  if (Date.now() < adminAuthExpiry) {
+    if (!confirm(message)) return;
+    callback();
+    return;
+  }
+
+  // 認証モーダルを表示
+  let modal = document.getElementById('admin-auth-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'admin-auth-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);';
+    modal.innerHTML = `
+      <div style="background:var(--bg-card);border:1px solid rgba(239,83,80,0.4);border-radius:16px;padding:28px;width:340px;max-width:92vw;position:relative;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span style="font-size:1rem;font-weight:700;color:#ef5350;">管理者認証</span>
+        </div>
+        <p id="admin-auth-msg" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;line-height:1.6;"></p>
+        <input type="password" id="admin-auth-pw" placeholder="管理者パスワード"
+          style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text-primary);font-size:0.875rem;margin-bottom:8px;">
+        <div id="admin-auth-err" style="font-size:0.75rem;color:#ef5350;min-height:18px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button id="admin-auth-cancel" style="padding:8px 16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-size:0.82rem;">キャンセル</button>
+          <button id="admin-auth-ok" style="padding:8px 16px;background:#ef5350;border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:600;font-size:0.82rem;">認証して実行</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
+  document.getElementById('admin-auth-msg').textContent = message;
+  document.getElementById('admin-auth-pw').value = '';
+  document.getElementById('admin-auth-err').textContent = '';
+  modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('admin-auth-pw').focus(), 50);
+
+  // 既存リスナーを除去してから再設定
+  const okBtn     = document.getElementById('admin-auth-ok');
+  const cancelBtn = document.getElementById('admin-auth-cancel');
+  const newOk     = okBtn.cloneNode(true);
+  const newCancel = cancelBtn.cloneNode(true);
+  okBtn.replaceWith(newOk);
+  cancelBtn.replaceWith(newCancel);
+
+  newCancel.addEventListener('click', () => { modal.style.display = 'none'; });
+
+  newOk.addEventListener('click', async () => {
+    const pw = document.getElementById('admin-auth-pw').value;
+    if (!pw) { document.getElementById('admin-auth-err').textContent = 'パスワードを入力してください'; return; }
+    const hash = await Storage.sha256(pw);
+    const adminAccount = Storage.Accounts.getAll().find(a => a.userId === 'Administrator');
+    if (!adminAccount || hash !== adminAccount.passwordHash) {
+      document.getElementById('admin-auth-err').textContent = 'パスワードが正しくありません';
+      document.getElementById('admin-auth-pw').value = '';
+      return;
+    }
+    // 認証成功 → 5分間キャッシュ
+    adminAuthExpiry = Date.now() + ADMIN_AUTH_TTL;
+    modal.style.display = 'none';
+    callback();
+  });
+
+  // Enterキー対応
+  document.getElementById('admin-auth-pw').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('admin-auth-ok').click();
+  });
 }

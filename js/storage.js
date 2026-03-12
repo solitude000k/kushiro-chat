@@ -113,6 +113,17 @@ const Storage = (() => {
     deleteAccount(id) {
       this.save(this.getAll().filter(a => a.id !== id));
     },
+    // 管理者専用: 強制削除（自分自身・Administratorは削除不可）
+    adminDeleteAccount(id) {
+      const target = this.findById(id);
+      if (!target) return false;
+      if (target.userId === 'Administrator') return false; // 管理者自身は削除不可
+      this.save(this.getAll().filter(a => a.id !== id));
+      return true;
+    },
+    isAdmin(account) {
+      return account && account.userId === 'Administrator';
+    },
     toCSV() {
       return toCSV(
         this.getAll().map(a => ({ ...a, avatarDataUrl: a.avatarDataUrl ? '[IMAGE]' : '' })),
@@ -208,6 +219,9 @@ const Storage = (() => {
     },
     delete(id, userId) {
       this.save(this.getAll().filter(m => !(m.id === id && m.userId === userId)));
+    },
+    adminDelete(id) {
+      this.save(this.getAll().filter(m => m.id !== id));
     },
     toCSV() { return toCSV(this.getAll(), ['id', 'roomId', 'userId', 'userName', 'text', 'imageData', 'videoData', 'tags', 'createdAt']); },
   };
