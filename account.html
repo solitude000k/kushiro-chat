@@ -233,7 +233,7 @@
   // ---- 初期化 (D1 API版) ----
   async function init() {
     currentAccount = Storage.Session.get();
-    if (!currentAccount) { window.location.href = 'index.html'; return; }
+    if (!currentAccount) { window.location.href = 'login.html'; return; }
 
     // APIから最新のアカウントデータを取得してセッションに反映
     const res = await API.getMyAccount().catch(() => ({ ok: false }));
@@ -424,7 +424,7 @@
     const res = await API.deleteAccount(currentAccount.id);
     if (!res.ok) { showToast(res.error || '削除に失敗しました', 'error'); return; }
     Storage.Session.clear();
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
   });
 
   // ---- 管理者パネル (D1 API版) ----
@@ -587,7 +587,7 @@
   document.getElementById('logout-btn').addEventListener('click', () => {
     if (confirm('ログアウトしますか？')) {
       Storage.Session.clear();
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     }
   });
 
