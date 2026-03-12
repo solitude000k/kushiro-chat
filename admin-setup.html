@@ -7,51 +7,14 @@
   <title>管理者セットアップ ～ 釧チャ</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
-    .setup-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .setup-card {
-      background: var(--bg-surface);
-      border: 1px solid rgba(239,83,80,0.35);
-      border-radius: 20px;
-      padding: 36px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-    }
-    .setup-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-    .setup-icon {
-      width: 44px; height: 44px;
-      background: rgba(239,83,80,0.12);
-      border: 1px solid rgba(239,83,80,0.3);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .setup-title { font-size: 1.1rem; font-weight: 700; color: #ef5350; }
-    .setup-subtitle { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.7; }
-    .warning-box {
-      background: rgba(239,83,80,0.08);
-      border: 1px solid rgba(239,83,80,0.2);
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      line-height: 1.7;
-      margin-bottom: 20px;
-    }
-    .warning-box strong { color: #ef5350; }
+    .setup-page { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px; }
+    .setup-card { background:var(--bg-surface);border:1px solid rgba(239,83,80,0.35);border-radius:20px;padding:36px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,0.6); }
+    .setup-header { display:flex;align-items:center;gap:12px;margin-bottom:8px; }
+    .setup-icon { width:44px;height:44px;background:rgba(239,83,80,0.12);border:1px solid rgba(239,83,80,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .setup-title { font-size:1.1rem;font-weight:700;color:#ef5350; }
+    .setup-subtitle { font-size:0.75rem;color:var(--text-muted);margin-bottom:24px;line-height:1.7; }
+    .warning-box { background:rgba(239,83,80,0.08);border:1px solid rgba(239,83,80,0.2);border-radius:10px;padding:12px 16px;font-size:0.78rem;color:var(--text-muted);line-height:1.7;margin-bottom:20px; }
+    .warning-box strong { color:#ef5350; }
   </style>
 </head>
 <body>
@@ -60,9 +23,7 @@
   <div class="setup-card fade-in">
     <div class="setup-header">
       <div class="setup-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
       <div>
         <div class="setup-title">管理者セットアップ</div>
@@ -81,7 +42,12 @@
       作成後は強力なパスワードを設定し、厳重に管理してください。
     </div>
 
-    <!-- 既存管理者存在チェック -->
+    <!-- サーバー確認中 -->
+    <div id="state-loading" style="text-align:center;padding:20px 0;">
+      <div style="font-size:.85rem;color:var(--text-muted);">サーバーに接続中…</div>
+    </div>
+
+    <!-- 既存管理者存在 -->
     <div id="state-exists" class="hidden">
       <div style="text-align:center;padding:20px 0;">
         <div style="font-size:2.5rem;margin-bottom:12px;">🔒</div>
@@ -92,7 +58,7 @@
     </div>
 
     <!-- セットアップフォーム -->
-    <div id="state-form">
+    <div id="state-form" class="hidden">
       <div class="form-group">
         <label class="form-label">ニックネーム <span style="color:#ef5350">*</span></label>
         <input type="text" id="admin-nickname" class="form-input" placeholder="管理者の表示名" maxlength="20" value="管理者">
@@ -101,7 +67,7 @@
         <label class="form-label">管理者パスワード <span style="color:#ef5350">*</span></label>
         <div class="input-wrap-rel">
           <input type="password" id="admin-pw" class="form-input" placeholder="12文字以上を推奨" autocomplete="new-password">
-          <button type="button" class="pw-toggle-btn" onclick="togglePw()">
+          <button type="button" class="pw-toggle-btn" onclick="togglePw('admin-pw',this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
@@ -114,7 +80,7 @@
         <label class="form-label">パスワード確認 <span style="color:#ef5350">*</span></label>
         <div class="input-wrap-rel">
           <input type="password" id="admin-pw2" class="form-input" placeholder="同じパスワードをもう一度" autocomplete="new-password">
-          <button type="button" class="pw-toggle-btn" onclick="togglePw2()">
+          <button type="button" class="pw-toggle-btn" onclick="togglePw('admin-pw2',this)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
@@ -133,50 +99,58 @@
       <div style="font-size:0.95rem;color:var(--text-primary);font-weight:600;margin-bottom:6px;">管理者アカウントを作成しました</div>
       <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:20px;line-height:1.6;">
         ユーザーID：<strong style="color:var(--amber);font-family:monospace;">Administrator</strong><br>
-        設定したパスワードでログインしてください。
+        設定したパスワードでログインしてください。<br>
+        自動的にログイン済み状態になります。
       </div>
-      <a href="index.html" class="btn btn-primary btn-sm" style="text-decoration:none;">ログインページへ</a>
+      <a href="chat.html" class="btn btn-primary btn-sm" style="text-decoration:none;">チャットへ進む</a>
     </div>
-
   </div>
 </div>
 
+<script src="js/config.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/api.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // 管理者アカウントが既に存在するかチェック
-  const existing = Storage.Accounts.getAll().find(a => a.userId === 'Administrator');
-  if (existing) {
-    document.getElementById('state-form').classList.add('hidden');
-    document.getElementById('state-exists').classList.remove('hidden');
+function show(id) {
+  ['state-loading','state-exists','state-form','state-done'].forEach(s =>
+    document.getElementById(s).classList.toggle('hidden', s !== id)
+  );
+}
+
+// ページロード時：サーバーで管理者の存在を確認
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    // check-useridエンドポイントで Administrator が使用中か確認
+    const res = await fetch(
+      `${window.KUSHIRO_API_BASE}/api/check-userid?userId=Administrator`,
+      { headers: { 'X-API-Secret': window.KUSHIRO_API_SECRET || '' } }
+    ).then(r => r.json());
+    // available=false → 既に存在
+    if (res.ok && res.available === false) { show('state-exists'); return; }
+    show('state-form');
+  } catch {
+    show('state-form'); // 接続失敗時はフォームを表示し送信時に再チェック
   }
 
-  document.getElementById('admin-pw').addEventListener('input', function() {
-    checkStrength(this.value);
-  });
+  document.getElementById('admin-pw').addEventListener('input', function() { checkStrength(this.value); });
 });
 
 function checkStrength(pw) {
-  let score = 0;
-  if (pw.length >= 8)  score++;
-  if (pw.length >= 12) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  const colors = ['#ef5350','#ef5350','#fb8c00','#66bb6a','#43a047'];
-  const labels = ['非常に弱い','弱い','普通','強い','非常に強い'];
-  const bar = document.getElementById('pw-strength-bar');
-  bar.style.width = ((score / 5) * 100) + '%';
-  bar.style.background = colors[score - 1] || '#ef5350';
-  document.getElementById('pw-strength-label').textContent = labels[score - 1] || '';
+  let s = 0;
+  if (pw.length >= 8)  s++;
+  if (pw.length >= 12) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  const cols  = ['#ef5350','#ef5350','#fb8c00','#66bb6a','#43a047'];
+  const labs  = ['非常に弱い','弱い','普通','強い','非常に強い'];
+  document.getElementById('pw-strength-bar').style.width    = ((s/5)*100)+'%';
+  document.getElementById('pw-strength-bar').style.background = cols[s-1]||'#ef5350';
+  document.getElementById('pw-strength-label').textContent  = labs[s-1]||'';
 }
 
-function togglePw() {
-  const el = document.getElementById('admin-pw');
-  el.type = el.type === 'password' ? 'text' : 'password';
-}
-function togglePw2() {
-  const el = document.getElementById('admin-pw2');
+function togglePw(id, btn) {
+  const el = document.getElementById(id);
   el.type = el.type === 'password' ? 'text' : 'password';
 }
 
@@ -191,33 +165,24 @@ async function doSetup() {
   if (pw.length < 8) { err.textContent = 'パスワードは8文字以上にしてください'; return; }
   if (pw !== pw2)    { err.textContent = 'パスワードが一致しません'; return; }
 
-  // 再度チェック（多重送信防止）
-  if (Storage.Accounts.getAll().find(a => a.userId === 'Administrator')) {
-    err.textContent = '管理者アカウントは既に存在します';
+  const btn = document.getElementById('setup-btn');
+  btn.disabled = true; btn.textContent = '作成中…';
+
+  const passwordHash = await Storage.sha256(pw);
+  const res = await API.adminSetup(nickname, passwordHash, '#ef5350').catch(() => ({ ok: false, error: 'サーバーエラー' }));
+
+  if (!res.ok) {
+    if (res.error?.includes('既に')) { show('state-exists'); return; }
+    err.textContent = res.error || '作成に失敗しました';
+    btn.disabled = false; btn.textContent = '管理者アカウントを作成';
     return;
   }
 
-  document.getElementById('setup-btn').disabled = true;
-
-  const passwordHash = await Storage.sha256(pw);
-  const account = {
-    id:           'a_admin_' + Date.now(),
-    userId:       'Administrator',
-    email:        'admin@local',
-    passwordHash,
-    nickname,
-    color:        '#ef5350',
-    avatarDataUrl:'',
-    verified:     true,
-    createdAt:    new Date().toISOString(),
-    updatedAt:    new Date().toISOString(),
-  };
-  const accounts = Storage.Accounts.getAll();
-  accounts.push(account);
-  Storage.Accounts.save(accounts);
-
-  document.getElementById('state-form').classList.add('hidden');
-  document.getElementById('state-done').classList.remove('hidden');
+  // 自動ログイン
+  if (res.sessionToken && res.account) {
+    Storage.Session.set({ ...res.account, sessionToken: res.sessionToken, name: res.account.nickname });
+  }
+  show('state-done');
 }
 </script>
 </body>

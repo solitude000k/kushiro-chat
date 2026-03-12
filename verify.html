@@ -160,6 +160,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/storage.js"></script>
+<script src="js/api.js"></script>
 <script>
   const API_BASE = window.KUSHIRO_API_BASE || 'https://kushiro-chat-auth.preview-me.workers.dev';
 
@@ -169,59 +170,27 @@
     document.getElementById(id).classList.add('active');
   }
 
-  // ---- トークン取得・検証 ----
+  // ---- トークン取得・検証 (D1 API版) ----
   async function verifyToken() {
     const params = new URLSearchParams(window.location.search);
     const token  = params.get('token');
-
     if (!token) {
       showError('URLにトークンが含まれていません。メール内のリンクをご確認ください。', false);
       return;
     }
-
     try {
       const res  = await fetch(`${API_BASE}/api/verify/${token}`);
       const data = await res.json();
-
       if (!data.ok) {
-        const isExpired = res.status === 410;
-        showError(data.error, isExpired, data.email);
+        showError(data.error, res.status === 410, data.email);
         return;
       }
-
-      // 検証成功 → アカウントをlocalStorageに保存
-      const { account } = data;
-      const existing = Storage.Accounts.findByEmail(account.email);
-      let finalAccount;
-      if (existing) {
-        // 既存ならverifiedフラグを更新
-        finalAccount = Storage.Accounts.update(existing.id, { verified: true });
-      } else {
-        // 新規作成
-        finalAccount = {
-          id:           'a_' + Date.now(),
-          userId:       account.userId || '',
-          email:        account.email,
-          passwordHash: account.passwordHash,
-          nickname:     account.nickname,
-          color:        account.color || '#f4a620',
-          avatarDataUrl: '',
-          verified:     true,
-          createdAt:    new Date().toISOString(),
-          updatedAt:    new Date().toISOString(),
-        };
-        const accounts = Storage.Accounts.getAll();
-        accounts.push(finalAccount);
-        Storage.Accounts.save(accounts);
-      }
-
-      Storage.Users.upsert(finalAccount);
-      Storage.Session.set({ ...finalAccount, name: finalAccount.nickname });
-      showSuccess(finalAccount);
-
+      // セッションを保存（sessionToken embedded）
+      Storage.Session.set({ ...data.account, sessionToken: data.sessionToken });
+      showSuccess(data.account);
     } catch (err) {
       console.error(err);
-      showError('サーバーへの接続に失敗しました。サーバーが起動しているか確認してください。', false);
+      showError('サーバーへの接続に失敗しました。', false);
     }
   }
 

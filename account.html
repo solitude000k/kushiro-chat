@@ -186,8 +186,15 @@
       管理者パネル
       <span style="font-size:0.65rem;background:rgba(239,83,80,0.15);color:#ef5350;border:1px solid rgba(239,83,80,0.3);padding:2px 8px;border-radius:10px;margin-left:4px;">Administrator</span>
     </div>
-    <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px;">アカウントの強制削除が可能です。各操作には管理者パスワードの再認証が必要です。</p>
+    <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:12px;">アカウントの強制削除が可能です。各操作には管理者パスワードの再認証が必要です。</p>
 
+    <div style="position:relative;margin-bottom:12px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="admin-search" class="form-input" placeholder="ユーザーIDで検索…" style="padding-left:34px;"
+        oninput="renderAdminPanel(this.value)">
+    </div>
     <div id="admin-account-list" style="display:flex;flex-direction:column;gap:8px;"></div>
   </section>
 
@@ -211,22 +218,20 @@
 <div id="toast-container"></div>
 
 <script src="js/storage.js"></script>
+<script src="js/api.js"></script>
 <script>
   let currentAccount = null;
   let selectedColor = '#f4a620';
 
-  // ---- 初期化 ----
-  function init() {
+  // ---- 初期化 (D1 API版) ----
+  async function init() {
     currentAccount = Storage.Session.get();
     if (!currentAccount) { window.location.href = 'index.html'; return; }
-    // 最新アカウント情報を取得
-    const latest = Storage.Accounts.findById(currentAccount.id);
-    if (latest) { currentAccount = latest; Storage.Session.set(latest); }
 
     renderProfile();
     renderColorPicker();
-    renderHistory();
-    if (Storage.Accounts.isAdmin(currentAccount)) renderAdminPanel();
+    await renderHistory();
+    if (currentAccount.userId === 'Administrator') await renderAdminPanel();
   }
 
   function renderProfile() {
@@ -290,12 +295,18 @@
   }
 
   // ---- 投稿履歴 ----
-  function renderHistory(filterRoomId = null) {
-    const msgs  = Storage.Messages.getByUser(currentAccount.id);
-    const rooms = Storage.Rooms.getAll();
-    const roomMap = Object.fromEntries(rooms.map(r => [r.id, r]));
+  async function renderHistory(filterRoomId = null) {
+    const [msgsRes, roomsRes] = await Promise.all([
+      API.listMessages('__all__').catch(() => ({ messages: [] })), // fallback
+      API.listRooms().catch(() => ({ rooms: [] })),
+    ]);
+    // ユーザーの投稿を全掲示板から収集
+    const allRooms = roomsRes.rooms || [];
+    const roomMap = Object.fromEntries(allRooms.map(r => [r.id, r]));
+    // 各掲示板のメッセージをまとめて取得
+    const allMsgArrays = await Promise.all(allRooms.map(r => API.listMessages(r.id).catch(() => ({ messages: [] }))));
+    const msgs = allMsgArrays.flatMap(r => (r.messages || []).filter(m => m.userId === currentAccount.id));
 
-    // フィルターボタン
     const usedRoomIds = [...new Set(msgs.map(m => m.roomId))];
     const filterDiv = document.getElementById('history-filters');
     filterDiv.innerHTML = '';
@@ -337,8 +348,7 @@
           <span>${room ? (room.icon||'💬') + ' ' + room.name : '（削除済み掲示板）'}</span>
           <span class="history-date">${dateStr}</span>
         </div>
-        <div class="history-text">${escapeHtml(msg.text || '')}${msg.imageData ? ' 📷' : ''}${msg.videoData ? ' 🎬' : ''}</div>
-        ${msg.tags ? `<div class="history-tags">${msg.tags.split(',').filter(Boolean).map(t=>`<span class="badge badge-cyan">${escapeHtml(t.trim())}</span>`).join('')}</div>` : ''}
+        <div class="history-text">${escapeHtml(msg.text || '')}${msg.imageData ? ' 📷' : ''}</div>
       `;
       list.appendChild(item);
     });
@@ -348,18 +358,21 @@
   document.getElementById('save-profile-btn').addEventListener('click', async () => {
     const nickname = document.getElementById('acc-nickname').value.trim();
     if (!nickname) { showToast('ニックネームを入力してください', 'error'); return; }
-    const gender = document.querySelector('input[name="acc-gender"]:checked')?.value || '';
-    const bio = document.getElementById('acc-bio').value.trim();
-    const xUrl  = document.getElementById('acc-x-url').value.trim();
-    const igUrl = document.getElementById('acc-ig-url').value.trim();
-    const fbUrl = document.getElementById('acc-fb-url').value.trim();
+    const gender    = document.querySelector('input[name="acc-gender"]:checked')?.value || '';
+    const bio       = document.getElementById('acc-bio').value.trim();
+    const xUrl      = document.getElementById('acc-x-url').value.trim();
+    const igUrl     = document.getElementById('acc-ig-url').value.trim();
+    const fbUrl     = document.getElementById('acc-fb-url').value.trim();
     const birthdate = document.getElementById('acc-birthdate').value;
-    const updated = Storage.Accounts.update(currentAccount.id, {
-      nickname, color: selectedColor, gender, bio, xUrl, igUrl, fbUrl, birthdate
+    const avatarDataUrl = currentAccount.avatarDataUrl || '';
+
+    const res = await API.updateAccount(currentAccount.id, {
+      nickname, color: selectedColor, gender, bio, xUrl, igUrl, fbUrl, birthdate, avatarDataUrl
     });
-    Storage.Users.upsert(updated);
-    Storage.Session.set({ ...updated, name: updated.nickname });
-    currentAccount = updated;
+    if (!res.ok) { showToast(res.error || '保存に失敗しました', 'error'); return; }
+    const updated = res.account;
+    Storage.Session.set({ ...Storage.Session.get(), ...updated });
+    currentAccount = { ...currentAccount, ...updated };
     showToast('プロフィールを保存しました', 'success');
   });
 
@@ -374,28 +387,40 @@
     if (!first) return;
     const second = confirm('本当に削除しますか？\nこの操作は元に戻せません。');
     if (!second) return;
-    // 投稿メッセージ削除
-    Storage.Messages.save(Storage.Messages.getAll().filter(m => m.userId !== currentAccount.id));
-    // ユーザーキャッシュ削除
-    Storage.Users.save ? Storage.Users.save(Storage.Users.getAll().filter(u => u.id !== currentAccount.id)) : null;
-    // アカウント削除
-    Storage.Accounts.deleteAccount(currentAccount.id);
-    // セッションクリア
+    const res = await API.deleteAccount(currentAccount.id);
+    if (!res.ok) { showToast(res.error || '削除に失敗しました', 'error'); return; }
     Storage.Session.clear();
     window.location.href = 'index.html';
   });
 
-  // ---- 管理者パネル ----
-  let adminAuthExpiry = 0;
-  const ADMIN_AUTH_TTL = 5 * 60 * 1000;
-
-  function renderAdminPanel() {
+  // ---- 管理者パネル (D1 API版) ----
+  async function renderAdminPanel(query) {
     document.getElementById('admin-panel').style.display = '';
     const list = document.getElementById('admin-account-list');
-    const accounts = Storage.Accounts.getAll();
+    const q    = (query || document.getElementById('admin-search')?.value || '').trim().toLowerCase();
+
+    list.innerHTML = '<div style="text-align:center;padding:12px;font-size:.78rem;color:var(--text-muted);">読み込み中...</div>';
+    const res = await API.listAccounts().catch(() => ({ ok: false, error: 'API接続エラー' }));
+    if (!res.ok) {
+      // 初回は管理者認証が必要なため adminAction 経由で再試行
+      list.innerHTML = '<div style="text-align:center;padding:12px;font-size:.78rem;color:var(--text-muted);">管理者認証が必要です</div>';
+      API.adminAction('管理者パネルにアクセスしますか？', async () => { await renderAdminPanel(query); });
+      return;
+    }
+    let accounts = (res.accounts || []).filter(a => a.userId !== 'Administrator');
+    if (q) {
+      accounts = accounts.filter(a =>
+        (a.userId || '').toLowerCase().includes(q) ||
+        (a.nickname || '').toLowerCase().includes(q) ||
+        (a.email || '').toLowerCase().includes(q)
+      );
+    }
     list.innerHTML = '';
+    if (!accounts.length) {
+      list.innerHTML = '<div style="text-align:center;padding:16px;font-size:.8rem;color:var(--text-muted);">該当するユーザーが見つかりません</div>';
+      return;
+    }
     accounts.forEach(acc => {
-      if (acc.userId === 'Administrator') return; // 管理者自身は表示しない
       const item = document.createElement('div');
       item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-elevated);border-radius:10px;border:1px solid var(--border);';
       const color = acc.color || '#f4a620';
@@ -423,82 +448,17 @@
       btn.addEventListener('click', () => {
         const accId   = btn.dataset.id;
         const accName = btn.dataset.name;
-        adminAuthAction(`「${accName}」のアカウントを強制削除しますか？
-そのユーザーのメッセージも全て削除されます。`, () => {
-          const target = Storage.Accounts.findById(accId);
-          if (target) {
-            Storage.Messages.save(Storage.Messages.getAll().filter(m => m.userId !== accId));
-            Storage.Users.save(Storage.Users.getAll().filter(u => u.id !== accId));
-            Storage.Accounts.adminDeleteAccount(accId);
-          }
-          showToast(`「${accName}」を削除しました`, 'success');
-          renderAdminPanel();
+        API.adminAction(`「${accName}」のアカウントを強制削除しますか？\nそのユーザーのメッセージも全て削除されます。`, async () => {
+          const r = await API.adminDeleteAccount(accId);
+          if (r.ok) { showToast(`「${accName}」を削除しました`, 'success'); await renderAdminPanel(); }
+          else showToast(r.error || '削除に失敗しました', 'error');
         });
       });
     });
   }
 
-  function adminAuthAction(message, callback) {
-    if (Date.now() < adminAuthExpiry) {
-      if (!confirm(message)) return;
-      callback();
-      return;
-    }
-    let modal = document.getElementById('admin-auth-modal-acc');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'admin-auth-modal-acc';
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);';
-      modal.innerHTML = `
-        <div style="background:var(--bg-card);border:1px solid rgba(239,83,80,0.4);border-radius:16px;padding:28px;width:340px;max-width:92vw;">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span style="font-size:1rem;font-weight:700;color:#ef5350;">管理者認証</span>
-          </div>
-          <p id="admin-auth-acc-msg" style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px;line-height:1.6;"></p>
-          <input type="password" id="admin-auth-acc-pw" placeholder="管理者パスワード"
-            style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text-primary);font-size:.875rem;margin-bottom:8px;">
-          <div id="admin-auth-acc-err" style="font-size:.75rem;color:#ef5350;min-height:18px;margin-bottom:10px;"></div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button id="admin-auth-acc-cancel" style="padding:8px 16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-size:.82rem;">キャンセル</button>
-            <button id="admin-auth-acc-ok" style="padding:8px 16px;background:#ef5350;border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:600;font-size:.82rem;">認証して実行</button>
-          </div>
-        </div>`;
-      document.body.appendChild(modal);
-    }
-    document.getElementById('admin-auth-acc-msg').textContent = message;
-    document.getElementById('admin-auth-acc-pw').value = '';
-    document.getElementById('admin-auth-acc-err').textContent = '';
-    modal.style.display = 'flex';
-    setTimeout(() => document.getElementById('admin-auth-acc-pw').focus(), 50);
 
-    const okBtn     = document.getElementById('admin-auth-acc-ok');
-    const cancelBtn = document.getElementById('admin-auth-acc-cancel');
-    const newOk     = okBtn.cloneNode(true);
-    const newCancel = cancelBtn.cloneNode(true);
-    okBtn.replaceWith(newOk);
-    cancelBtn.replaceWith(newCancel);
-    newCancel.addEventListener('click', () => { modal.style.display = 'none'; });
-    newOk.addEventListener('click', async () => {
-      const pw = document.getElementById('admin-auth-acc-pw').value;
-      if (!pw) { document.getElementById('admin-auth-acc-err').textContent = 'パスワードを入力してください'; return; }
-      const hash = await Storage.sha256(pw);
-      const adminAccount = Storage.Accounts.getAll().find(a => a.userId === 'Administrator');
-      if (!adminAccount || hash !== adminAccount.passwordHash) {
-        document.getElementById('admin-auth-acc-err').textContent = 'パスワードが正しくありません';
-        document.getElementById('admin-auth-acc-pw').value = '';
-        return;
-      }
-      adminAuthExpiry = Date.now() + ADMIN_AUTH_TTL;
-      modal.style.display = 'none';
-      callback();
-    });
-    document.getElementById('admin-auth-acc-pw').addEventListener('keydown', e => {
-      if (e.key === 'Enter') document.getElementById('admin-auth-acc-ok').click();
-    });
-  }
-
-  function escapeHtml(str) {
+    function escapeHtml(str) {
     return String(str||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   }
 
@@ -514,20 +474,20 @@
       document.getElementById('acc-avatar-img-wrap').classList.remove('hidden');
       document.getElementById('acc-avatar').classList.add('hidden');
       document.getElementById('avatar-remove-btn').style.display = 'inline-flex';
-      const updated = Storage.Accounts.update(currentAccount.id, { avatarDataUrl: dataUrl });
-      Storage.Users.upsert(updated);
-      Storage.Session.set(updated);
-      currentAccount = updated;
+      const avRes = await API.updateAccount(currentAccount.id, { avatarDataUrl: dataUrl });
+      const updated = avRes.ok ? avRes.account : currentAccount;
+      Storage.Session.set({ ...Storage.Session.get(), avatarDataUrl: updated.avatarDataUrl || '' });
+      currentAccount = { ...currentAccount, ...updated };
       showToast('アイコン画像を変更しました', 'success');
     };
     reader.readAsDataURL(file);
   });
 
-  document.getElementById('avatar-remove-btn').addEventListener('click', () => {
-    const updated = Storage.Accounts.update(currentAccount.id, { avatarDataUrl: '' });
-    Storage.Users.upsert(updated);
-    Storage.Session.set(updated);
-    currentAccount = updated;
+  document.getElementById('avatar-remove-btn').addEventListener('click', async () => {
+    await API.updateAccount(currentAccount.id, { avatarDataUrl: '' });
+    const updated = { ...currentAccount, avatarDataUrl: '' };
+    Storage.Session.set({ ...Storage.Session.get(), avatarDataUrl: '' });
+    currentAccount = { ...currentAccount, avatarDataUrl: '' };
     document.getElementById('acc-avatar-img-wrap').classList.add('hidden');
     document.getElementById('acc-avatar').classList.remove('hidden');
     document.getElementById('avatar-remove-btn').style.display = 'none';
@@ -575,7 +535,7 @@
       const currentHash = await Storage.sha256(cur);
       if (currentHash !== currentAccount.passwordHash) { showPwErr('現在のパスワードが正しくありません'); return; }
       const newHash = await Storage.sha256(nw);
-      const updated = Storage.Accounts.update(currentAccount.id, { passwordHash: newHash });
+      const updated = await API.updateAccount(currentAccount.id, { passwordHash: newHash });
       Storage.Session.set(updated);
       currentAccount = updated;
       document.getElementById('pw-current').value = '';

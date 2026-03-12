@@ -1,24 +1,18 @@
 /**
- * chat.js - チャット機能メイン
+ * chat.js - チャット機能メイン (D1バックエンド版)
  */
 
 let currentRoom = null;
 let currentUser = null;
-let isAdmin = false;
-let adminAuthExpiry = 0; // 管理者認証の有効期限 (ms)
-const ADMIN_AUTH_TTL = 5 * 60 * 1000; // 5分
-let pendingMedia = []; // { type, data, name }
-let pendingTags = [];
-let typingTimer = null;
-let pollTimer = null;
+let isAdmin     = false;
+let pendingMedia = [];
+let pollTimer    = null;
+let currentFilter = 'all';
+const visitedRooms = new Set();
 
-document.addEventListener('DOMContentLoaded', () => {
-  // セッション確認（未認証・未ログインはログインページへ）
+document.addEventListener('DOMContentLoaded', async () => {
   currentUser = Storage.Session.get();
-  if (!currentUser) {
-    window.location.href = 'index.html';
-    return;
-  }
+  if (!currentUser) { window.location.href = 'index.html'; return; }
   if (!currentUser.verified) {
     alert('メールアドレスが未確認です。認証メールのリンクをクリックしてから再度ログインしてください。');
     Storage.Session.clear();
@@ -26,89 +20,79 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  isAdmin = currentUser.userId === 'Administrator';
   initUI();
-  purgeStaleRooms();        // 72時間更新なし掲示板を自動削除
-  updateCategoryFilters(); // フィルターボタンを先に生成してイベント登録
-  loadRooms();
   setupEventListeners();
-  // 初期ルーム: なんでも雑談 (r_001) を自動選択
-  const defaultRoom = Storage.Rooms.getAll().find(r => r.id === 'r_001') || Storage.Rooms.getAll()[0];
-  if (defaultRoom) selectRoom(defaultRoom.id);
 
-  // ポーリング (擬似リアルタイム)
-  pollTimer = setInterval(() => {
-    if (currentRoom) refreshMessages();
-    updateDMBadge();
+  await updateCategoryFilters();
+  await loadRooms();
+
+  const rooms = (await API.listRooms()).rooms || [];
+  const defaultRoom = rooms.find(r => r.id === 'r_001') || rooms[0];
+  if (defaultRoom) await selectRoom(defaultRoom.id);
+
+  pollTimer = setInterval(async () => {
+    if (currentRoom) await refreshMessages();
+    await updateDMBadge();
   }, 3000);
-  updateDMBadge(); // 初回即時チェック
+  await updateDMBadge();
 });
 
 // ---- UI初期化 ----
 function initUI() {
-  // ユーザー情報セット
   const avatar = document.getElementById('header-avatar');
-  const uname = document.getElementById('header-username');
+  const uname  = document.getElementById('header-username');
   renderAvatar(avatar, currentUser);
-  uname.textContent = currentUser.name;
-  // 管理者フラグ
-  isAdmin = Storage.Accounts.isAdmin(currentUser);
+  uname.textContent = currentUser.nickname || currentUser.name || '';
 }
 
-
-// ---- DM 未読バッジ更新 ----
-function updateDMBadge() {
+// ---- DM未読バッジ ----
+async function updateDMBadge() {
   if (!currentUser) return;
-  const all = Storage.DirectMessages.getAll();
-  const unread = all.filter(m => m.toId === currentUser.id && !m.read).length;
+  const res = await API.getDMConversations().catch(() => ({ ok: false }));
+  const unread = res.ok
+    ? (res.conversations || []).reduce((sum, c) => sum + (c.unread || 0), 0)
+    : 0;
 
   const headerBadge = document.getElementById('dm-header-badge');
   const menuBadge   = document.getElementById('dm-menu-badge');
-
-  if (headerBadge) {
-    headerBadge.style.display = unread > 0 ? 'block' : 'none';
-  }
+  if (headerBadge) headerBadge.style.display = unread > 0 ? 'block' : 'none';
   if (menuBadge) {
-    if (unread > 0) {
-      menuBadge.style.display = 'inline-flex';
-      menuBadge.textContent = unread > 99 ? '99+' : unread;
-    } else {
-      menuBadge.style.display = 'none';
-    }
+    if (unread > 0) { menuBadge.style.display = 'inline-flex'; menuBadge.textContent = unread > 99 ? '99+' : unread; }
+    else menuBadge.style.display = 'none';
   }
 }
 
-// ---- ルーム一覧読み込み ----
-// 現在のフィルター状態を保持
-let currentFilter = 'all';
-// 訪問済みルームIDのセット（バッジ管理）
-const visitedRooms = new Set();
+// ---- ルーム一覧 ----
+async function loadRooms(filterCategory) {
+  if (filterCategory !== undefined) currentFilter = filterCategory;
 
-function loadRooms(filterCategory = currentFilter) {
-  currentFilter = filterCategory;
-  const rooms = Storage.Rooms.getAll();
-  const list = document.getElementById('room-list');
+  const res   = await API.listRooms();
+  const rooms = res.rooms || [];
+  const list  = document.getElementById('room-list');
   list.innerHTML = '';
 
-  const filtered = filterCategory === 'all' ? rooms : rooms.filter(r => (r.tags || '').split(',').map(t=>t.trim()).includes(filterCategory));
+  const filtered = currentFilter === 'all'
+    ? rooms
+    : rooms.filter(r => (r.tags || '').split(',').map(t => t.trim()).includes(currentFilter));
 
   filtered.forEach(room => {
-    const item = document.createElement('div');
+    const item     = document.createElement('div');
     item.className = 'room-item' + (currentRoom?.id === room.id ? ' active' : '');
     item.dataset.roomId = room.id;
-    const msgCount = Storage.Messages.getByRoom(room.id).length;
-    const showBadge = msgCount > 0 && !visitedRooms.has(room.id);
-    const isCreator = (room.createdBy === currentUser.name || isAdmin) && room.createdBy !== 'system';
+    const cnt       = room.messageCount || 0;
+    const showBadge = cnt > 0 && !visitedRooms.has(room.id);
+    const isCreator = (room.createdBy === currentUser.id || isAdmin) && room.createdBy !== 'system';
     item.innerHTML = `
       <span class="room-icon">${room.icon || '💬'}</span>
       <div class="room-info">
         <div class="room-name truncate">${escapeHtml(room.name)}</div>
         <div class="room-category">${room.tags ? room.tags.split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="tag-pill">${escapeHtml(t)}</span>`).join('') : ''}</div>
       </div>
-      ${showBadge ? `<span class="room-badge">${msgCount > 99 ? '99+' : msgCount}</span>` : ''}
+      ${showBadge ? `<span class="room-badge">${cnt > 99 ? '99+' : cnt}</span>` : ''}
       ${isCreator ? `<button class="room-delete-btn" data-room-id="${room.id}" title="掲示板を削除">✕</button>` : ''}
     `;
     item.addEventListener('click', () => selectRoom(room.id));
-    // 削除ボタン（クリックイベントをバブリングさせない）
     const delBtn = item.querySelector('.room-delete-btn');
     if (delBtn) {
       delBtn.addEventListener('click', e => {
@@ -119,221 +103,139 @@ function loadRooms(filterCategory = currentFilter) {
     list.appendChild(item);
   });
 
-  // フィルターボタンの active 状態だけ更新（ボタン再生成はしない）
   const container = document.getElementById('category-filters');
   container.querySelectorAll('.category-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.cat === filterCategory);
+    b.classList.toggle('active', b.dataset.cat === currentFilter);
   });
 }
 
-function updateCategoryFilters() {
-  const cats = Storage.Rooms.getCategories();
+async function updateCategoryFilters() {
+  const res   = await API.listRooms();
+  const rooms = res.rooms || [];
+  const tags  = new Set();
+  rooms.forEach(r => (r.tags || '').split(',').map(t => t.trim()).filter(Boolean).forEach(t => tags.add(t)));
+
   const container = document.getElementById('category-filters');
   container.innerHTML = '<button class="category-btn active" data-cat="all">すべて</button>';
-  cats.forEach(cat => {
+  tags.forEach(cat => {
     const btn = document.createElement('button');
-    btn.className = 'category-btn';
+    btn.className   = 'category-btn';
     btn.dataset.cat = cat;
     btn.textContent = cat;
     container.appendChild(btn);
   });
-  // 現在のフィルター状態を反映
   container.querySelectorAll('.category-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.cat === currentFilter);
-  });
-  // イベントは一度だけここで登録
-  container.querySelectorAll('.category-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      loadRooms(btn.dataset.cat);
-    });
+    b.addEventListener('click', () => loadRooms(b.dataset.cat));
   });
 }
 
 // ---- ルーム選択 ----
-function selectRoom(roomId) {
-  const room = Storage.Rooms.getById(roomId);
+async function selectRoom(roomId) {
+  visitedRooms.add(roomId);
+  const rooms = (await API.listRooms()).rooms || [];
+  const room  = rooms.find(r => r.id === roomId);
   if (!room) return;
   currentRoom = room;
-  visitedRooms.add(roomId); // 訪問済みとしてマーク（バッジを消す）
 
-  // サイドバーのアクティブ更新
   document.querySelectorAll('.room-item').forEach(el => {
     el.classList.toggle('active', el.dataset.roomId === roomId);
   });
 
-  // チャットヘッダー更新
-  document.getElementById('chat-room-icon').textContent = room.icon || '💬';
-  document.getElementById('chat-room-name').textContent = room.name;
-  document.getElementById('chat-room-desc').textContent = room.description || '';
-
-  const tagsEl = document.getElementById('chat-room-tags');
-  tagsEl.innerHTML = '';
-  if (room.tags) {
-    room.tags.split(',').forEach(tag => {
-      const span = document.createElement('span');
-      span.className = 'badge badge-amber';
-      span.textContent = tag.trim();
-      tagsEl.appendChild(span);
-    });
-  }
-
-  // チャットエリアを表示
-  document.getElementById('no-room-state').classList.add('hidden');
+  document.getElementById('chat-room-icon').textContent  = room.icon || '💬';
+  document.getElementById('chat-room-name').textContent  = room.name;
+  document.getElementById('chat-room-desc').textContent  = room.description || '';
   document.getElementById('chat-main').classList.remove('hidden');
+  document.getElementById('no-room-state').classList.add('hidden');
+  document.getElementById('chat-input').focus();
 
-  // 入力エリアを有効化
-  document.getElementById('message-input').disabled = false;
-  document.getElementById('message-input').placeholder = `${room.name} にメッセージを送る…`;
-
-  refreshMessages(true);
-
-  // モバイル: サイドバーを閉じる
-  closeMobileSidebar();
+  await refreshMessages();
 }
 
 // ---- メッセージ表示 ----
-let lastMessageCount = 0;
-
-function refreshMessages(scrollToBottom = false) {
+async function refreshMessages() {
   if (!currentRoom) return;
-  const messages = Storage.Messages.getByRoom(currentRoom.id);
+  const res      = await API.listMessages(currentRoom.id);
+  const messages = res.messages || [];
+  const container = document.getElementById('message-list');
+  const scrollEl  = document.getElementById('chat-messages');
+  const atBottom  = scrollEl.scrollHeight - scrollEl.scrollTop <= scrollEl.clientHeight + 80;
 
-  if (messages.length === lastMessageCount && !scrollToBottom) return;
-  lastMessageCount = messages.length;
-
-  const container = document.getElementById('messages-container');
-  const wasAtBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 50;
-
-  renderMessages(messages, container);
-
-  if (scrollToBottom || wasAtBottom) {
-    container.scrollTop = container.scrollHeight;
-  }
-}
-
-function renderMessages(messages, container) {
   container.innerHTML = '';
-
   if (!messages.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">💬</div>
-        <p>まだメッセージがありません。<br>最初のメッセージを送ってみましょう！</p>
-      </div>`;
-    return;
+    container.innerHTML = `<div class="no-messages"><div class="no-messages-icon">${currentRoom.icon || '💬'}</div><p>まだメッセージはありません<br><span>最初のメッセージを送ってみましょう</span></p></div>`;
   }
 
-  let lastDate = '';
-  let lastUserId = '';
-
-  messages.forEach((msg, idx) => {
-    const date = new Date(msg.createdAt);
-    const dateStr = formatDate(date);
+  let lastUserId = null;
+  messages.forEach(msg => {
     const isOwn = msg.userId === currentUser.id;
-    const isSameUser = msg.userId === lastUserId;
+    const row   = document.createElement('div');
 
-    if (dateStr !== lastDate) {
-      const divider = document.createElement('div');
-      divider.className = 'messages-date-divider';
-      divider.innerHTML = `<span>${dateStr}</span>`;
-      container.appendChild(divider);
-      lastDate = dateStr;
-      lastUserId = '';
-    }
+    const date    = new Date(msg.createdAt);
+    const timeStr = String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
 
-    const row = document.createElement('div');
     row.className = `message-row${isOwn ? ' own' : ''}`;
     row.dataset.msgId = msg.id;
 
-    const showMeta = true; // 常に名前・時刻を表示
+    // アバター(直前と同じユーザーなら省略)
+    const showAvatar = msg.userId !== lastUserId;
+    let avHtml = '';
+    if (!isOwn && showAvatar) {
+      const color = msg.userColor || '#f4a620';
+      avHtml = msg.userAvatar
+        ? `<div class="avatar avatar-sm" style="border-color:${color};overflow:hidden;background:transparent;cursor:pointer;" onclick="showUserProfile('${escapeHtml(msg.userId)}')"><img src="${msg.userAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`
+        : `<div class="avatar avatar-sm" style="background:${color}22;border-color:${color};color:${color};cursor:pointer;" onclick="showUserProfile('${escapeHtml(msg.userId)}')">${(msg.userName||'?').charAt(0).toUpperCase()}</div>`;
+    } else if (!isOwn) {
+      avHtml = '<div class="avatar avatar-sm" style="visibility:hidden;"></div>';
+    }
 
-    // アバター（meta の横に表示するため後で使う）
-    const user = isOwn
-      ? { name: currentUser.name || currentUser.nickname, color: currentUser.color, avatarDataUrl: currentUser.avatarDataUrl }
-      : Storage.Users.findByName(msg.userName) || { name: msg.userName, color: '#f4a620', avatarDataUrl: '' };
-
-    // バブル
     const bubbleWrap = document.createElement('div');
-    bubbleWrap.style.display = 'flex';
-    bubbleWrap.style.flexDirection = 'column';
+    bubbleWrap.className = 'bubble-wrap';
     bubbleWrap.style.alignItems = isOwn ? 'flex-end' : 'flex-start';
-    bubbleWrap.style.maxWidth = '72%';
 
-    if (showMeta) {
-      const meta = document.createElement('div');
-      meta.className = 'message-meta';
-      // アバターをユーザー名の横に配置（DOM操作で安全に構築）
-      const av = document.createElement('div');
-      av.className = 'avatar avatar-xs';
-      renderAvatar(av, user);
-      const authorSpan = document.createElement('span');
-      authorSpan.className = 'message-author';
-      authorSpan.textContent = msg.userName || currentUser.nickname || '?';
-      if (!isOwn) {
-        av.style.cursor = 'pointer';
-        authorSpan.style.cursor = 'pointer';
-        const openProfile = () => showUserProfile(msg.userId, msg.userName);
-        av.addEventListener('click', openProfile);
-        authorSpan.addEventListener('click', openProfile);
-      }
-      const timeSpan = document.createElement('span');
-      timeSpan.className = 'message-time';
-      timeSpan.textContent = formatTime(date);
-      if (isOwn) {
-        meta.appendChild(timeSpan);
-        meta.appendChild(authorSpan);
-        meta.appendChild(av);
-      } else {
-        meta.appendChild(av);
-        meta.appendChild(authorSpan);
-        meta.appendChild(timeSpan);
-      }
-      bubbleWrap.appendChild(meta);
+    if (!isOwn && showAvatar) {
+      const nameEl = document.createElement('div');
+      nameEl.className = 'message-username';
+      nameEl.textContent = msg.userName || '';
+      nameEl.style.cursor = 'pointer';
+      nameEl.addEventListener('click', () => showUserProfile(msg.userId));
+      bubbleWrap.appendChild(nameEl);
     }
 
     const bubble = document.createElement('div');
-    bubble.className = 'message-bubble';
+    bubble.className = `message-bubble${isOwn ? ' own' : ''}`;
 
-    let content = '';
-
-    // テキスト
     if (msg.text) {
-      content += `<div class="message-text">${formatMessageText(msg.text)}</div>`;
+      const textEl = document.createElement('div');
+      textEl.className = 'message-text';
+      textEl.innerHTML = escapeHtml(msg.text).replace(/\n/g, '<br>');
+      bubble.appendChild(textEl);
     }
-
-    // 画像
     if (msg.imageData) {
-      content += `<img class="message-image" src="${msg.imageData}" alt="添付画像" onclick="openLightbox(this.src)" loading="lazy">`;
+      const img = document.createElement('img');
+      img.src = msg.imageData;
+      img.className = 'message-image';
+      img.addEventListener('click', () => img.requestFullscreen?.());
+      bubble.appendChild(img);
     }
 
-    // 動画
-    if (msg.videoData) {
-      content += `<video class="message-video" controls src="${msg.videoData}" preload="none"></video>`;
-    }
-
-    // タグ
-    if (msg.tags) {
-      const tags = msg.tags.split(',').filter(Boolean);
-      if (tags.length) {
-        content += `<div class="message-tags">${tags.map(t => `<span class="badge badge-cyan">${escapeHtml(t.trim())}</span>`).join('')}</div>`;
-      }
-    }
-
-    bubble.innerHTML = content;
+    const timeEl = document.createElement('div');
+    timeEl.className = `message-time${isOwn ? ' own' : ''}`;
+    timeEl.textContent = timeStr;
     bubbleWrap.appendChild(bubble);
+    bubbleWrap.appendChild(timeEl);
 
-    // 削除ボタンをバブルの横に配置（自分 or 管理者）
     if (isOwn || isAdmin) {
       const delBtn = document.createElement('button');
       delBtn.className = 'msg-delete-btn' + (isAdmin && !isOwn ? ' admin-delete-btn' : '');
-      delBtn.title = isAdmin && !isOwn ? '[管理者] 削除' : 'メッセージを削除';
+      delBtn.title     = isAdmin && !isOwn ? '[管理者] 削除' : 'メッセージを削除';
       delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
       delBtn.addEventListener('click', () => {
         if (isAdmin && !isOwn) {
-          adminAction('このメッセージを削除しますか？（管理者操作）', () => {
-            Storage.Messages.adminDelete(msg.id);
-            refreshMessages();
-            showToast('メッセージを削除しました（管理者）', 'success');
+          API.adminAction(`このメッセージを削除しますか？（管理者操作）`, async () => {
+            const r = await API.adminDeleteMessage(msg.id);
+            if (r.ok) { await refreshMessages(); showToast('メッセージを削除しました（管理者）', 'success'); }
+            else showToast(r.error || '削除に失敗しました', 'error');
           });
         } else {
           deleteMessage(msg.id);
@@ -345,419 +247,248 @@ function renderMessages(messages, container) {
       row.appendChild(bubbleWrap);
     }
 
+    if (!isOwn) row.insertBefore(document.createRange().createContextualFragment(avHtml || '<div class="avatar avatar-sm" style="visibility:hidden;"></div>'), row.firstChild);
+
     container.appendChild(row);
     lastUserId = msg.userId;
   });
+
+  if (atBottom) scrollEl.scrollTop = scrollEl.scrollHeight;
 }
 
 // ---- メッセージ送信 ----
-function sendMessage() {
+async function sendMessage() {
   if (!currentRoom) return;
-
-  const input = document.getElementById('message-input');
-  const text = input.value.trim();
-
+  const input = document.getElementById('chat-input');
+  const text  = input.value.trim();
   if (!text && !pendingMedia.length) return;
 
   const msg = {
-    roomId: currentRoom.id,
-    userId: currentUser.id,
-    userName: currentUser.name,
-    text: text,
-    tags: pendingTags.join(','),
-    createdAt: new Date().toISOString(),
+    roomId:   currentRoom.id,
+    userId:   currentUser.id,
+    userName: currentUser.nickname || currentUser.name || '',
+    text:     text,
+    imageData: pendingMedia.find(m => m.type === 'image')?.data || '',
   };
 
-  // メディア添付
-  pendingMedia.forEach(m => {
-    if (m.type === 'image') msg.imageData = m.data;
-    if (m.type === 'video') msg.videoData = m.data;
-  });
-
-  Storage.Messages.add(msg);
-
-  // リセット
   input.value = '';
   input.style.height = '';
   pendingMedia = [];
-  pendingTags = [];
-  renderPreviews();
+  renderMediaPreview();
 
-  refreshMessages(true);
-  loadRooms(); // バッジ更新
+  const res = await API.postMessage(msg);
+  if (!res.ok) { showToast(res.error || '送信に失敗しました', 'error'); return; }
+  await refreshMessages();
+  await updateCategoryFilters();
 }
 
 // ---- メッセージ削除 ----
-function deleteMessage(id) {
+async function deleteMessage(id) {
   if (!confirm('このメッセージを削除しますか？')) return;
-  Storage.Messages.delete(id, currentUser.id);
-  refreshMessages();
-  showToast('メッセージを削除しました', 'success');
+  const res = await API.deleteMessage(id);
+  if (res.ok) { await refreshMessages(); showToast('メッセージを削除しました', 'success'); }
+  else showToast(res.error || '削除に失敗しました', 'error');
 }
 
 // ---- メディア添付 ----
 function handleFileSelect(type) {
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = type === 'image' ? 'image/*' : 'video/*';
+  input.accept = type === 'image' ? 'image/*' : 'image/*'; // 動画はURLリンクに変更
   input.addEventListener('change', async () => {
     const file = input.files[0];
     if (!file) return;
-
-    const maxSize = type === 'image' ? 5 * 1024 * 1024 : 50 * 1024 * 1024;
-    if (file.size > maxSize) {
-      showToast(`ファイルサイズが大きすぎます（最大${type === 'image' ? '5MB' : '50MB'}）`, 'error');
+    // D1の行サイズ上限のため 1MB に制限
+    if (file.size > 1 * 1024 * 1024) {
+      showToast('ファイルサイズが大きすぎます（最大1MB）', 'error');
       return;
     }
-
     const reader = new FileReader();
     reader.onload = e => {
-      pendingMedia.push({ type, data: e.target.result, name: file.name });
-      renderPreviews();
+      pendingMedia = [{ type: 'image', data: e.target.result, name: file.name }];
+      renderMediaPreview();
     };
     reader.readAsDataURL(file);
   });
   input.click();
 }
 
-function renderPreviews() {
-  const container = document.getElementById('input-previews');
-  container.innerHTML = '';
-  pendingMedia.forEach((m, idx) => {
-    const item = document.createElement('div');
-    item.className = 'preview-item';
+function renderMediaPreview() {
+  const preview = document.getElementById('media-preview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  if (!pendingMedia.length) { preview.style.display = 'none'; return; }
+  preview.style.display = 'flex';
+  pendingMedia.forEach((m, i) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block;';
     if (m.type === 'image') {
-      item.innerHTML = `<img src="${m.data}" alt="preview"><button class="preview-remove" onclick="removeMedia(${idx})">×</button>`;
-    } else {
-      item.innerHTML = `<video src="${m.data}" muted preload="metadata"></video><button class="preview-remove" onclick="removeMedia(${idx})">×</button>`;
+      const img = document.createElement('img');
+      img.src = m.data;
+      img.style.cssText = 'max-height:80px;border-radius:8px;border:1px solid var(--border);';
+      wrap.appendChild(img);
     }
-    container.appendChild(item);
+    const rm = document.createElement('button');
+    rm.innerHTML = '✕';
+    rm.style.cssText = 'position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;';
+    rm.addEventListener('click', () => { pendingMedia.splice(i, 1); renderMediaPreview(); });
+    wrap.appendChild(rm);
+    preview.appendChild(wrap);
   });
 }
 
-function removeMedia(idx) {
-  pendingMedia.splice(idx, 1);
-  renderPreviews();
+// ---- 掲示板作成 ----
+async function createRoom() {
+  const name = document.getElementById('new-room-name')?.value.trim();
+  const tags = document.getElementById('new-room-tags')?.value.trim();
+  const desc = document.getElementById('new-room-desc')?.value.trim();
+  const icon = document.getElementById('new-room-icon')?.value.trim() || '💬';
+  if (!name) { showToast('掲示板名を入力してください', 'error'); return; }
+
+  const res = await API.createRoom({ name, tags, description: desc, icon });
+  if (!res.ok) { showToast(res.error || '作成に失敗しました', 'error'); return; }
+
+  document.getElementById('create-room-modal')?.classList.remove('active');
+  ['new-room-name','new-room-tags','new-room-desc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  await updateCategoryFilters();
+  await loadRooms();
+  showToast(`「${res.room.name}」を作成しました`, 'success');
+  await selectRoom(res.room.id);
 }
 
-// ---- タグ管理 ----
-function renderTagChips() {
-  // tag-input-area は削除済みのため何もしない
-}
-
-function removeTag(idx) {
-  pendingTags.splice(idx, 1);
-  renderTagChips();
-}
-
-function addTag(value) {
-  const tag = value.trim().replace(/^#/, '');
-  if (tag && !pendingTags.includes(tag) && pendingTags.length < 5) {
-    pendingTags.push(tag);
-    renderTagChips();
+// ---- 掲示板削除 ----
+async function deleteRoom(roomId, roomName) {
+  const room = (await API.listRooms()).rooms?.find(r => r.id === roomId);
+  if (room && room.createdBy !== currentUser.id && isAdmin) {
+    API.adminAction(`「${roomName}」を削除しますか？\nメッセージも全て削除されます。（管理者操作）`, async () => {
+      const r = await API.deleteRoom(roomId);
+      if (r.ok) { await _afterRoomDelete(roomId, roomName); }
+      else showToast(r.error || '削除に失敗しました', 'error');
+    });
+  } else {
+    if (!confirm(`「${roomName}」を削除しますか？\nメッセージも全て削除されます。`)) return;
+    const r = await API.deleteRoom(roomId);
+    if (r.ok) await _afterRoomDelete(roomId, roomName);
+    else showToast(r.error || '削除に失敗しました', 'error');
   }
 }
 
-// ---- 新規ルーム作成 ----
-function openNewRoomModal() {
-  document.getElementById('new-room-modal').classList.add('active');
-  document.getElementById('new-room-name').focus();
-}
-
-function closeNewRoomModal() {
-  document.getElementById('new-room-modal').classList.remove('active');
-  document.getElementById('new-room-form').reset();
-  document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
-  document.querySelector('.icon-option[data-icon="💬"]')?.classList.add('selected');
-}
-
-// ---- タグ入力サニタイズ（特殊文字を除去） ----
-function sanitizeTagInput(input) {
-  const sanitized = input.value.replace(/[^a-zA-Z0-9\u3000-\u9FFF\uF900-\uFAFF\uff66-\uff9f\u30a1-\u30f6\u3041-\u3096\s,，、]/g, '');
-  const normalized = sanitized.replace(/[，、]/g, ',');
-  if (input.value !== normalized) input.value = normalized;
-}
-
-function submitNewRoom() {
-  const name = document.getElementById('new-room-name').value.trim();
-  const rawTags = document.getElementById('new-room-tags').value.trim();
-  const desc = document.getElementById('new-room-desc').value.trim();
-  const icon = document.querySelector('.icon-option.selected')?.dataset.icon || '💬';
-
-  if (!name) { showToast('掲示板名を入力してください', 'error'); return; }
-  if (!rawTags) { showToast('タグを1つ以上入力してください', 'error'); return; }
-
-  const tags = rawTags
-    .split(',')
-    .map(t => t.trim().replace(/[^a-zA-Z0-9\u3000-\u9FFF\uF900-\uFAFF\uff66-\uff9f\u30a1-\u30f6\u3041-\u3096\s]/g, '').trim())
-    .filter(Boolean)
-    .slice(0, 10)
-    .join(',');
-
-  const room = Storage.Rooms.add({ name, tags, description: desc, icon, createdBy: currentUser.name });
-
-  closeNewRoomModal();
-  loadRooms();
-  showToast(`「${name}」を作成しました！`, 'success');
-  selectRoom(room.id);
-}
-
-
-// ---- 掲示板削除 ----
-function deleteRoom(roomId, roomName) {
-  if (!confirm(`「${roomName}」を削除しますか？\nメッセージも全て削除されます。`)) return;
-  // メッセージも削除
-  const msgs = Storage.Messages.getAll().filter(m => m.roomId !== roomId);
-  Storage.Messages.save(msgs);
-  Storage.Rooms.delete(roomId);
-  // 削除したルームが選択中なら別ルームへ
+async function _afterRoomDelete(roomId, roomName) {
   if (currentRoom?.id === roomId) {
     currentRoom = null;
     document.getElementById('chat-main').classList.add('hidden');
     document.getElementById('no-room-state').classList.remove('hidden');
   }
-  updateCategoryFilters();
-  loadRooms();
+  await updateCategoryFilters();
+  await loadRooms();
   showToast(`「${roomName}」を削除しました`, 'success');
 }
 
-// ---- 72時間更新なし掲示板を自動削除 ----
-function purgeStaleRooms() {
-  const EXPIRE_MS = 72 * 60 * 60 * 1000; // 72時間
-  const now = Date.now();
-  const rooms = Storage.Rooms.getAll();
-  const messages = Storage.Messages.getAll();
+// ---- イベント設定 ----
+function setupEventListeners() {
+  // 送信
+  document.getElementById('send-btn')?.addEventListener('click', sendMessage);
+  const input = document.getElementById('chat-input');
+  if (input) {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+    input.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+  }
 
-  const stale = rooms.filter(r => {
-    if (r.createdBy === 'system') return false; // システム掲示板は対象外
-    const roomMsgs = messages.filter(m => m.roomId === r.id);
-    if (roomMsgs.length === 0) {
-      // メッセージなし → 作成から72時間経過で削除
-      return (now - new Date(r.createdAt).getTime()) > EXPIRE_MS;
-    }
-    // 最終メッセージから72時間経過で削除
-    const lastAt = Math.max(...roomMsgs.map(m => new Date(m.createdAt).getTime()));
-    return (now - lastAt) > EXPIRE_MS;
-  });
+  // メディア
+  document.getElementById('attach-image-btn')?.addEventListener('click', () => handleFileSelect('image'));
 
-  if (stale.length === 0) return;
-  const staleIds = new Set(stale.map(r => r.id));
-  Storage.Rooms.save(rooms.filter(r => !staleIds.has(r.id)));
-  Storage.Messages.save(messages.filter(m => !staleIds.has(m.roomId)));
-  console.log(`[purge] ${stale.length}件の掲示板を自動削除しました`);
-}
+  // ヘッダー ドロップダウン
+  const trigger = document.getElementById('user-menu-trigger');
+  const dropdown = document.getElementById('user-dropdown');
+  trigger?.addEventListener('click', e => { e.stopPropagation(); dropdown?.classList.toggle('show'); });
+  document.addEventListener('click', () => dropdown?.classList.remove('show'));
 
-// ---- ライトボックス ----
-function openLightbox(src) {
-  const lb = document.getElementById('lightbox');
-  lb.querySelector('img').src = src;
-  lb.classList.add('active');
-}
-
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('active');
-}
-
-// ---- CSV エクスポート ----
-function exportData() {
-  Storage.exportAll();
-  showToast('CSVファイルをダウンロードしました', 'success');
-}
-
-// ---- ログアウト ----
-function logout() {
-  if (confirm('ログアウトしますか？')) {
-    clearInterval(pollTimer);
+  // ログアウト
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
     Storage.Session.clear();
     window.location.href = 'index.html';
+  });
+
+  // 掲示板作成モーダル
+  document.getElementById('create-room-btn')?.addEventListener('click', () => {
+    document.getElementById('create-room-modal')?.classList.add('active');
+  });
+  document.getElementById('cancel-room-btn')?.addEventListener('click', () => {
+    document.getElementById('create-room-modal')?.classList.remove('active');
+  });
+  document.getElementById('submit-room-btn')?.addEventListener('click', createRoom);
+}
+
+// ---- プロフィールモーダル ----
+async function showUserProfile(userId) {
+  // D1からアカウント情報を取得 (adminなら listAccounts、一般はメッセージから)
+  // フォールバック: メッセージ内のユーザー情報を使用
+  let profile = null;
+  if (isAdmin) {
+    const res = await API.listAccounts().catch(() => ({}));
+    profile = (res.accounts || []).find(a => a.id === userId || a.userId === userId);
   }
-}
-
-// ---- Toast 通知 ----
-function showToast(msg, type = '') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
-
-// ---- Lightbox ----
-function openLightbox(src) {
-  const lb = document.getElementById('lightbox');
-  lb.querySelector('img').src = src;
-  lb.classList.add('active');
-}
-
-// ---- モバイルサイドバー ----
-function toggleMobileSidebar() {
-  document.getElementById('sidebar').classList.toggle('mobile-open');
-  document.getElementById('sidebar-overlay').classList.toggle('active');
-}
-function closeMobileSidebar() {
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sidebar-overlay').classList.remove('active');
-}
-
-// ---- イベントリスナー設定 ----
-function setupEventListeners() {
-  // 送信ボタン
-  document.getElementById('send-btn').addEventListener('click', sendMessage);
-
-  // Enterキー送信 (Shift+Enterで改行)
-  document.getElementById('message-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+  // フォールバック: 表示中メッセージから探す
+  if (!profile) {
+    const msgs = document.querySelectorAll(`.message-row[data-msg-id]`);
+    // 現在のメッセージから uid が一致するものを探してアバター情報を収集
+    const res = await API.listMessages(currentRoom?.id || '');
+    const msg = (res.messages || []).find(m => m.userId === userId);
+    if (msg) {
+      profile = {
+        id:           msg.userId,
+        userId:       msg.userId,
+        nickname:     msg.userName,
+        color:        msg.userColor || '#f4a620',
+        avatarDataUrl:msg.userAvatar || '',
+      };
     }
-  });
-
-  // テキストエリア自動リサイズ（画面の40%まで）
-  document.getElementById('message-input').addEventListener('input', function () {
-    this.style.height = '';
-    const maxH = Math.floor(window.innerHeight * 0.40);
-    this.style.height = Math.min(this.scrollHeight, maxH) + 'px';
-  });
-
-  // 画像添付
-  document.getElementById('attach-image-btn').addEventListener('click', () => handleFileSelect('image'));
-
-  // 動画添付
-  document.getElementById('attach-video-btn').addEventListener('click', () => handleFileSelect('video'));
-
-  // 新規ルーム
-  document.getElementById('new-room-btn').addEventListener('click', openNewRoomModal);
-  document.getElementById('new-room-cancel').addEventListener('click', closeNewRoomModal);
-  document.getElementById('new-room-submit').addEventListener('click', submitNewRoom);
-
-  // アイコン選択
-  document.querySelectorAll('.icon-option').forEach(el => {
-    el.addEventListener('click', () => {
-      document.querySelectorAll('.icon-option').forEach(e => e.classList.remove('selected'));
-      el.classList.add('selected');
-    });
-  });
-  document.querySelector('.icon-option')?.classList.add('selected');
-
-  // モーダル外クリックで閉じる
-  document.getElementById('new-room-modal').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeNewRoomModal();
-  });
-
-  // ライトボックス
-  document.getElementById('lightbox').addEventListener('click', closeLightbox);
-
-  // ユーザーメニュー
-  document.getElementById('logout-btn').addEventListener('click', logout);
-
-  // モバイル
-  document.getElementById('sidebar-toggle')?.addEventListener('click', toggleMobileSidebar);
-  document.getElementById('sidebar-overlay')?.addEventListener('click', closeMobileSidebar);
-}
-
-// ---- アバター描画 ----
-function renderAvatar(el, user) {
-  const color = user?.color || '#f4a620';
-  el.style.borderColor = color;
-  const imgUrl = user?.avatarDataUrl || '';
-  if (imgUrl) {
-    el.style.backgroundImage = `url(${imgUrl})`;
-    el.style.backgroundSize = 'cover';
-    el.style.backgroundPosition = 'center';
-    el.style.background = `url(${imgUrl}) center/cover`;
-    el.style.color = 'transparent';
-    el.textContent = '';
-  } else {
-    el.style.backgroundImage = '';
-    el.style.background = color + '22';
-    el.style.color = color;
-    el.textContent = (user?.name || user?.nickname || '?').charAt(0).toUpperCase();
   }
+  if (!profile) { showToast('プロフィールを取得できませんでした', 'error'); return; }
+
+  _renderProfileModal(profile);
 }
 
-// ---- ユーティリティ ----
-function escapeHtml(str) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return String(str).replace(/[&<>"']/g, c => map[c]);
-}
+function _renderProfileModal(profile) {
+  const nickname = profile.nickname || '';
+  const uid      = profile.userId   || '';
+  const color    = profile.color    || '#f4a620';
+  const avatarDataUrl = profile.avatarDataUrl || '';
+  const bio      = profile.bio      || '';
+  const gender   = profile.gender   || '';
+  const birthdate= profile.birthdate|| '';
 
-function formatMessageText(text) {
-  return escapeHtml(text)
-    .replace(/\n/g, '<br>')
-    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:var(--cyan)">$1</a>');
-}
-
-function formatDate(date) {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today - 86400000);
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  if (d >= today) return '今日';
-  if (d >= yesterday) return '昨日';
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-}
-
-function formatTime(date) {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
-
-// ============ ユーザープロフィールモーダル ============
-function showUserProfile(userId, userName) {
-  // アカウントから直接検索（同端末ユーザー）
-  let account = Storage.Accounts.findById(userId);
-  // なければUsersキャッシュから名前で検索
-  let cached = account ? null : Storage.Users.findByName(userName);
-  const data = account || cached || { name: userName, userId: '', bio: '', xUrl: '', igUrl: '', fbUrl: '', color: '#f4a620', avatarDataUrl: '' };
-
-  const nickname  = data.nickname || data.name || userName;
-  const uid       = data.userId   || '';
-  const bio       = data.bio      || '';
-  const gender    = data.gender   || '';
-  const birthdate = data.birthdate || '';
-  const xUrl      = data.xUrl     || '';
-  const igUrl     = data.igUrl    || '';
-  const fbUrl     = data.fbUrl    || '';
-  const color     = data.color    || '#f4a620';
-  const avatarDataUrl = data.avatarDataUrl || '';
-
-  // 年代計算
-  function getAgeRange(bd) {
-    if (!bd) return '';
-    const birth = new Date(bd);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
-    if (age < 10) return '10歳未満';
-    return Math.floor(age / 10) * 10 + '代';
-  }
-  const ageRange = getAgeRange(birthdate);
-
-  // 性別ラベル
   const genderLabel = gender === 'male' ? '男性' : gender === 'female' ? '女性' : gender === 'other' ? 'その他' : '';
+  let ageRange = '';
+  if (birthdate) {
+    const age = Math.floor((Date.now() - new Date(birthdate)) / (365.25 * 86400000));
+    ageRange = age < 20 ? '10代' : age < 30 ? '20代' : age < 40 ? '30代' : age < 50 ? '40代' : age < 60 ? '50代' : '60代以上';
+  }
 
-  // アバターHTML
   let avHtml;
   if (avatarDataUrl) {
-    avHtml = `<div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${color};flex-shrink:0;">
-      <img src="${avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;">
-    </div>`;
+    avHtml = `<div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid ${color};flex-shrink:0;"><img src="${avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;"></div>`;
   } else {
-    const initial = nickname.charAt(0).toUpperCase();
-    avHtml = `<div style="width:72px;height:72px;border-radius:50%;border:3px solid ${color};background:${color}22;color:${color};display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;flex-shrink:0;">${initial}</div>`;
+    const init = nickname.charAt(0).toUpperCase();
+    avHtml = `<div style="width:72px;height:72px;border-radius:50%;border:3px solid ${color};background:${color}22;color:${color};display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;flex-shrink:0;">${init}</div>`;
   }
 
-  // SNSアイコンHTML（未登録でもグレーで常時表示）
   function snsBtn(url, title, svgInner) {
-    if (url) {
-      return `<a href="${url}" target="_blank" rel="noopener" class="profile-sns-btn" title="${title}">${svgInner}</a>`;
-    }
+    if (url) return `<a href="${url}" target="_blank" rel="noopener" class="profile-sns-btn" title="${title}">${svgInner}</a>`;
     return `<span class="profile-sns-btn profile-sns-disabled" title="${title}（未登録）">${svgInner}</span>`;
   }
   const xSvg  = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.74l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
-  const igSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`;
+  const igSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`;
   const fbSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`;
-  const sns = [snsBtn(xUrl, 'X (Twitter)', xSvg), snsBtn(igUrl, 'Instagram', igSvg), snsBtn(fbUrl, 'Facebook', fbSvg)];
+  const sns = [snsBtn(profile.xUrl||'', 'X (Twitter)', xSvg), snsBtn(profile.igUrl||'', 'Instagram', igSvg), snsBtn(profile.fbUrl||'', 'Facebook', fbSvg)];
 
   let modal = document.getElementById('user-profile-modal');
   if (!modal) {
@@ -767,6 +498,14 @@ function showUserProfile(userId, userName) {
     modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
     document.body.appendChild(modal);
   }
+
+  const isOwnProfile = profile.id === currentUser.id;
+  const adminDeleteBtn = isAdmin && !isOwnProfile
+    ? `<button onclick="adminDeleteFromProfile('${escapeHtml(profile.id)}','${escapeHtml(nickname)}')" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:0.72rem;background:rgba(239,83,80,0.12);color:#ef5350;border:1px solid rgba(239,83,80,0.3);border-radius:20px;cursor:pointer;white-space:nowrap;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        削除
+      </button>`
+    : '';
 
   modal.innerHTML = `
     <div class="user-profile-modal-card">
@@ -778,17 +517,18 @@ function showUserProfile(userId, userName) {
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">${escapeHtml(nickname)}</div>
-            <button onclick="startDM('${escapeHtml(userId || '')}','${escapeHtml(nickname)}')" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:0.72rem;background:rgba(77,208,225,0.12);color:var(--cyan);border:1px solid rgba(77,208,225,0.25);border-radius:20px;cursor:pointer;white-space:nowrap;">
+            ${!isOwnProfile ? `<button onclick="startDM('${escapeHtml(profile.id)}','${escapeHtml(nickname)}')" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:0.72rem;background:rgba(77,208,225,0.12);color:var(--cyan);border:1px solid rgba(77,208,225,0.25);border-radius:20px;cursor:pointer;white-space:nowrap;">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               DM
-            </button>
+            </button>` : ''}
+            ${adminDeleteBtn}
           </div>
           ${uid ? `<div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;margin-top:2px;">@${escapeHtml(uid)}</div>` : ''}
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:0.78rem;color:var(--text-muted);">
-        <div style="white-space:nowrap;">性別：<span style="color:${genderLabel ? 'var(--text-secondary)' : 'var(--text-muted)'};font-style:${genderLabel ? 'normal' : 'italic'}">${genderLabel || '登録されていません'}</span></div>
-        <div style="white-space:nowrap;">年齢：<span style="color:${ageRange ? 'var(--text-secondary)' : 'var(--text-muted)'};font-style:${ageRange ? 'normal' : 'italic'}">${ageRange || '登録されていません'}</span></div>
+        <div>性別：<span style="color:${genderLabel ? 'var(--text-secondary)' : 'var(--text-muted)'};font-style:${genderLabel ? 'normal' : 'italic'}">${genderLabel || '登録されていません'}</span></div>
+        <div>年齢：<span style="color:${ageRange ? 'var(--text-secondary)' : 'var(--text-muted)'};font-style:${ageRange ? 'normal' : 'italic'}">${ageRange || '登録されていません'}</span></div>
       </div>
       <div style="font-size:0.82rem;color:${bio ? 'var(--text-secondary)' : 'var(--text-muted)'};line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:12px;font-style:${bio ? 'normal' : 'italic'}">${bio ? escapeHtml(bio) : '自己紹介が登録されていません'}</div>
       <div style="display:flex;gap:10px;margin-top:4px;">${sns.join('')}</div>
@@ -796,87 +536,50 @@ function showUserProfile(userId, userName) {
   modal.classList.add('active');
 }
 
-function startDM(targetUserId, targetName) {
-  // モーダルを閉じる
-  const modal = document.getElementById('user-profile-modal');
-  if (modal) modal.classList.remove('active');
-  // DMページへ遷移（IDがない場合は名前で代用）
-  const param = targetUserId ? encodeURIComponent(targetUserId) : '';
-  const nameParam = encodeURIComponent(targetName);
-  window.location.href = `dm.html?to=${param}&name=${nameParam}`;
+function startDM(targetId, targetName) {
+  document.getElementById('user-profile-modal')?.classList.remove('active');
+  window.location.href = `dm.html?to=${encodeURIComponent(targetId)}&name=${encodeURIComponent(targetName)}`;
 }
 
-// ================================================================
-// 管理者認証モーダル
-// ================================================================
-
-// adminAction: 管理者パスワード再認証後にコールバックを実行
-function adminAction(message, callback) {
-  // 5分以内に認証済みならそのまま実行
-  if (Date.now() < adminAuthExpiry) {
-    if (!confirm(message)) return;
-    callback();
-    return;
-  }
-
-  // 認証モーダルを表示
-  let modal = document.getElementById('admin-auth-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'admin-auth-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);';
-    modal.innerHTML = `
-      <div style="background:var(--bg-card);border:1px solid rgba(239,83,80,0.4);border-radius:16px;padding:28px;width:340px;max-width:92vw;position:relative;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <span style="font-size:1rem;font-weight:700;color:#ef5350;">管理者認証</span>
-        </div>
-        <p id="admin-auth-msg" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px;line-height:1.6;"></p>
-        <input type="password" id="admin-auth-pw" placeholder="管理者パスワード"
-          style="width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text-primary);font-size:0.875rem;margin-bottom:8px;">
-        <div id="admin-auth-err" style="font-size:0.75rem;color:#ef5350;min-height:18px;margin-bottom:10px;"></div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;">
-          <button id="admin-auth-cancel" style="padding:8px 16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);cursor:pointer;font-size:0.82rem;">キャンセル</button>
-          <button id="admin-auth-ok" style="padding:8px 16px;background:#ef5350;border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:600;font-size:0.82rem;">認証して実行</button>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-
-  document.getElementById('admin-auth-msg').textContent = message;
-  document.getElementById('admin-auth-pw').value = '';
-  document.getElementById('admin-auth-err').textContent = '';
-  modal.style.display = 'flex';
-  setTimeout(() => document.getElementById('admin-auth-pw').focus(), 50);
-
-  // 既存リスナーを除去してから再設定
-  const okBtn     = document.getElementById('admin-auth-ok');
-  const cancelBtn = document.getElementById('admin-auth-cancel');
-  const newOk     = okBtn.cloneNode(true);
-  const newCancel = cancelBtn.cloneNode(true);
-  okBtn.replaceWith(newOk);
-  cancelBtn.replaceWith(newCancel);
-
-  newCancel.addEventListener('click', () => { modal.style.display = 'none'; });
-
-  newOk.addEventListener('click', async () => {
-    const pw = document.getElementById('admin-auth-pw').value;
-    if (!pw) { document.getElementById('admin-auth-err').textContent = 'パスワードを入力してください'; return; }
-    const hash = await Storage.sha256(pw);
-    const adminAccount = Storage.Accounts.getAll().find(a => a.userId === 'Administrator');
-    if (!adminAccount || hash !== adminAccount.passwordHash) {
-      document.getElementById('admin-auth-err').textContent = 'パスワードが正しくありません';
-      document.getElementById('admin-auth-pw').value = '';
-      return;
-    }
-    // 認証成功 → 5分間キャッシュ
-    adminAuthExpiry = Date.now() + ADMIN_AUTH_TTL;
-    modal.style.display = 'none';
-    callback();
+async function adminDeleteFromProfile(targetId, targetName) {
+  API.adminAction(`「${targetName}」のアカウントを強制削除しますか？\nそのユーザーのメッセージも全て削除されます。`, async () => {
+    const res = await API.adminDeleteAccount(targetId);
+    if (!res.ok) { showToast(res.error || '削除に失敗しました', 'error'); return; }
+    document.getElementById('user-profile-modal')?.classList.remove('active');
+    showToast(`「${targetName}」を削除しました（管理者）`, 'success');
+    await loadRooms();
+    await refreshMessages();
   });
+}
 
-  // Enterキー対応
-  document.getElementById('admin-auth-pw').addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('admin-auth-ok').click();
-  });
+// ---- アバター描画 ----
+function renderAvatar(el, user) {
+  if (!el || !user) return;
+  const color = user.color || '#f4a620';
+  if (user.avatarDataUrl) {
+    el.innerHTML = `<img src="${user.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    el.style.background  = 'transparent';
+    el.style.overflow    = 'hidden';
+  } else {
+    el.textContent       = (user.nickname || user.name || '?').charAt(0).toUpperCase();
+    el.style.background  = color + '22';
+    el.style.color       = color;
+  }
+  el.style.borderColor = color;
+}
+
+// ---- ユーティリティ ----
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c])
+  );
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container')?.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
 }
