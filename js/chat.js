@@ -57,6 +57,8 @@ async function updateDMBadge() {
   const headerBadge = document.getElementById('dm-header-badge');
   const menuBadge   = document.getElementById('dm-menu-badge');
   if (headerBadge) headerBadge.style.display = unread > 0 ? 'block' : 'none';
+  const navBadge = document.getElementById('dm-nav-badge');
+  if (navBadge) navBadge.style.display = unread > 0 ? 'block' : 'none';
   if (menuBadge) {
     if (unread > 0) { menuBadge.style.display = 'inline-flex'; menuBadge.textContent = unread > 99 ? '99+' : unread; }
     else menuBadge.style.display = 'none';
