@@ -296,6 +296,7 @@
       50%      { border-color: rgba(239,83,80,.55); }
     }
     /* rawTextトグル */
+    .raw-toggle { display: none; } /* 管理者のみJSで表示 */
     .raw-toggle {
       display: inline-flex; align-items: center; gap: 5px;
       margin-top: 24px; padding: 7px 14px;
@@ -447,6 +448,7 @@ async function loadNews(forceRefresh = false) {
     if (!data.ok) throw new Error(data.error || 'APIエラー');
 
     renderNews(data);
+    checkAdminAndShowRefresh(); // rawボタン再チェック
 
     dot.className = 'status-dot';
     const cached = data.cached;
@@ -597,7 +599,7 @@ function renderNews(data) {
   if (data.rawText) {
     html += `
       <div style="text-align:center;">
-        <button class="raw-toggle" onclick="toggleRaw(this)">
+        <button class="raw-toggle" id="raw-toggle-btn" onclick="toggleRaw(this)">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
           Gemini 生テキストを表示
         </button>
@@ -623,6 +625,8 @@ async function checkAdminAndShowRefresh() {
     if (res && res.ok && res.account && res.account.userId === 'Administrator') {
       const btn = document.getElementById('admin-refresh-btn');
       if (btn) btn.style.display = 'flex';
+      const rawBtn = document.getElementById('raw-toggle-btn');
+      if (rawBtn) rawBtn.style.display = 'inline-flex';
     }
   } catch(e) { /* 管理者でなければ何もしない */ }
 }
