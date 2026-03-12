@@ -735,17 +735,33 @@ function showUserProfile(userId, userName) {
       </button>
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
         ${avHtml}
-        <div>
-          <div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">${escapeHtml(nickname)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">${escapeHtml(nickname)}</div>
+            <button onclick="startDM('${escapeHtml(userId || '')}','${escapeHtml(nickname)}')" style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:0.72rem;background:rgba(77,208,225,0.12);color:var(--cyan);border:1px solid rgba(77,208,225,0.25);border-radius:20px;cursor:pointer;white-space:nowrap;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              DM
+            </button>
+          </div>
           ${uid ? `<div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;margin-top:2px;">@${escapeHtml(uid)}</div>` : ''}
         </div>
       </div>
-      <div style="display:flex;gap:16px;margin-bottom:10px;font-size:0.78rem;color:var(--text-muted);">
-        <span>性別：<span style="color:${genderLabel ? 'var(--text-secondary)' : 'var(--text-muted);font-style:italic'}">${genderLabel || '登録されていません'}</span></span>
-        <span>年齢：<span style="color:${ageRange ? 'var(--text-secondary)' : 'var(--text-muted);font-style:italic'}">${ageRange || '登録されていません'}</span></span>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;font-size:0.78rem;color:var(--text-muted);">
+        <div style="white-space:nowrap;">性別：<span style="color:${genderLabel ? 'var(--text-secondary)' : 'var(--text-muted)'};font-style:${genderLabel ? 'normal' : 'italic'}">${genderLabel || '登録されていません'}</span></div>
+        <div style="white-space:nowrap;">年齢：<span style="color:${ageRange ? 'var(--text-secondary)' : 'var(--text-muted)'};font-style:${ageRange ? 'normal' : 'italic'}">${ageRange || '登録されていません'}</span></div>
       </div>
       <div style="font-size:0.82rem;color:${bio ? 'var(--text-secondary)' : 'var(--text-muted)'};line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:12px;font-style:${bio ? 'normal' : 'italic'}">${bio ? escapeHtml(bio) : '自己紹介が登録されていません'}</div>
       <div style="display:flex;gap:10px;margin-top:4px;">${sns.join('')}</div>
     </div>`;
   modal.classList.add('active');
+}
+
+function startDM(targetUserId, targetName) {
+  // モーダルを閉じる
+  const modal = document.getElementById('user-profile-modal');
+  if (modal) modal.classList.remove('active');
+  // DMページへ遷移（IDがない場合は名前で代用）
+  const param = targetUserId ? encodeURIComponent(targetUserId) : '';
+  const nameParam = encodeURIComponent(targetName);
+  window.location.href = `dm.html?to=${param}&name=${nameParam}`;
 }

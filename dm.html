@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ダイレクトメッセージ ～ 釧チャ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/chat.css">
+  <link rel="stylesheet" href="css/dm.css">
+</head>
+<body>
+<div class="night-bg"></div>
+
+<div class="dm-layout">
+
+  <!-- ===== ヘッダー ===== -->
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="chat.html" class="btn-icon" title="チャットに戻る" style="color:var(--text-secondary);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+      </a>
+      <a href="chat.html" class="header-brand">
+        <img src="images/logo.svg" alt="ロゴ">
+        <div>
+          <div class="header-brand-text">釧チャ</div>
+          <div class="header-brand-sub">ダイレクトメッセージ</div>
+        </div>
+      </a>
+    </div>
+    <div class="header-actions">
+      <div class="header-user" id="user-menu-trigger">
+        <div class="avatar avatar-sm" id="header-avatar"></div>
+        <span class="header-user-name" id="header-username"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== メインDMレイアウト ===== -->
+  <div class="dm-body">
+
+    <!-- ===== サイドバー：会話履歴 ===== -->
+    <aside class="dm-sidebar" id="dm-sidebar">
+      <div class="dm-sidebar-header">
+        <span>メッセージ</span>
+      </div>
+      <div class="dm-conv-list" id="dm-conv-list">
+        <div class="dm-empty-conv">
+          <span>📭</span>
+          <p>まだメッセージはありません</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== メイン：チャットエリア ===== -->
+    <main class="dm-main">
+
+      <!-- 相手未選択 -->
+      <div class="dm-no-conv" id="dm-no-conv">
+        <div class="big-icon">💬</div>
+        <h2>ダイレクトメッセージ</h2>
+        <p>左のリストから会話を選ぶか、<br>チャットから相手のアイコンをクリックしてDMを送れます</p>
+        <a href="chat.html" class="btn btn-secondary" style="margin-top:8px;text-decoration:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          チャットに戻る
+        </a>
+      </div>
+
+      <!-- 会話エリア -->
+      <div class="dm-conv-area hidden" id="dm-conv-area">
+
+        <!-- 会話ヘッダー -->
+        <div class="dm-conv-header" id="dm-conv-header">
+          <button class="btn-icon dm-back-btn" id="dm-back-btn" title="一覧に戻る">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+          </button>
+          <div class="avatar avatar-sm" id="dm-partner-avatar"></div>
+          <div class="dm-partner-info">
+            <div class="dm-partner-name" id="dm-partner-name">-</div>
+            <div class="dm-partner-id"   id="dm-partner-uid"></div>
+          </div>
+        </div>
+
+        <!-- メッセージ一覧 -->
+        <div class="dm-messages" id="dm-messages">
+          <div class="dm-messages-inner" id="dm-messages-inner"></div>
+        </div>
+
+        <!-- 入力エリア -->
+        <div class="dm-input-area">
+          <div class="dm-media-preview" id="dm-media-preview"></div>
+          <div class="dm-input-row">
+            <button class="btn-icon dm-attach-btn" id="dm-img-btn" title="画像を添付">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </button>
+            <textarea id="dm-input" class="dm-textarea" placeholder="メッセージを入力…" rows="1"></textarea>
+            <button class="btn btn-primary btn-sm dm-send-btn" id="dm-send-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script>
+// ===================================================
+// DM ページ メインスクリプト
+// ===================================================
+
+let currentUser  = null;
+let currentPartner = null; // { id, name, color, avatarDataUrl, userId }
+let dmPendingImage = null;
+let dmPollTimer    = null;
+
+// ---- 初期化 ----
+document.addEventListener('DOMContentLoaded', () => {
+  currentUser = Storage.Session.get();
+  if (!currentUser || !currentUser.id) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  renderHeader();
+  renderConvList();
+
+  // URLパラメータから相手を特定
+  const params  = new URLSearchParams(window.location.search);
+  const toId    = params.get('to');
+  const toName  = params.get('name') || '';
+
+  if (toId || toName) {
+    // アカウントから相手を探す
+    let partnerAccount = toId ? Storage.Accounts.getAll().find(a => a.userId === toId || a.id === toId) : null;
+    if (!partnerAccount && toName) {
+      partnerAccount = Storage.Accounts.findByEmail
+        ? Storage.Accounts.getAll().find(a => a.nickname === toName)
+        : null;
+    }
+    const cachedUser = toName ? Storage.Users.findByName(toName) : null;
+
+    const partner = {
+      id:           partnerAccount?.id           || toId || toName,
+      userId:       partnerAccount?.userId        || toId || '',
+      name:         partnerAccount?.nickname      || cachedUser?.name || toName,
+      color:        partnerAccount?.color         || cachedUser?.color || '#4dd0e1',
+      avatarDataUrl:partnerAccount?.avatarDataUrl || cachedUser?.avatarDataUrl || '',
+    };
+    openConversation(partner);
+  }
+
+  // 送信ボタン
+  document.getElementById('dm-send-btn').addEventListener('click', sendDM);
+  document.getElementById('dm-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDM(); }
+  });
+  document.getElementById('dm-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  // 画像添付
+  document.getElementById('dm-img-btn').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { showToast('画像は5MB以下にしてください', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        dmPendingImage = e.target.result;
+        renderDMMediaPreview();
+      };
+      reader.readAsDataURL(file);
+    });
+    input.click();
+  });
+
+  // 戻るボタン（モバイル）
+  document.getElementById('dm-back-btn').addEventListener('click', () => {
+    document.getElementById('dm-conv-area').classList.add('hidden');
+    document.getElementById('dm-no-conv').classList.remove('hidden');
+    document.getElementById('dm-sidebar').classList.remove('dm-sidebar-hidden');
+    stopPoll();
+  });
+});
+
+// ---- ヘッダーアバター ----
+function renderHeader() {
+  const av = document.getElementById('header-avatar');
+  av.textContent = (currentUser.name || currentUser.nickname || '?').charAt(0).toUpperCase();
+  av.style.background  = (currentUser.color || '#f4a620') + '22';
+  av.style.borderColor = currentUser.color || '#f4a620';
+  av.style.color       = currentUser.color || '#f4a620';
+  document.getElementById('header-username').textContent = currentUser.name || currentUser.nickname || '';
+}
+
+// ---- 会話一覧を描画 ----
+function renderConvList() {
+  const list = document.getElementById('dm-conv-list');
+  const convs = Storage.DirectMessages.getConversations(currentUser.id);
+  if (!convs.length) {
+    list.innerHTML = '<div class="dm-empty-conv"><span>📭</span><p>まだメッセージはありません</p></div>';
+    return;
+  }
+  list.innerHTML = '';
+  convs.forEach(conv => {
+    const partnerAccount = Storage.Accounts.getAll().find(a => a.id === conv.partnerId);
+    const cachedUser     = Storage.Users.findByName(conv.partnerName);
+    const color    = partnerAccount?.color         || cachedUser?.color    || '#4dd0e1';
+    const avUrl    = partnerAccount?.avatarDataUrl  || cachedUser?.avatarDataUrl || '';
+    const uid      = partnerAccount?.userId         || '';
+
+    const item = document.createElement('div');
+    item.className = 'dm-conv-item' + (currentPartner?.id === conv.partnerId ? ' active' : '');
+    item.dataset.partnerId = conv.partnerId;
+
+    let avHtml;
+    if (avUrl) {
+      avHtml = `<div class="avatar avatar-sm" style="border-color:${color};overflow:hidden;background:transparent;"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`;
+    } else {
+      const init = (conv.partnerName || '?').charAt(0).toUpperCase();
+      avHtml = `<div class="avatar avatar-sm" style="background:${color}22;border-color:${color};color:${color};">${init}</div>`;
+    }
+
+    const lastText = conv.last.text
+      ? (conv.last.text.length > 28 ? conv.last.text.slice(0, 28) + '…' : conv.last.text)
+      : (conv.last.imageData ? '📷 画像' : 'メッセージ');
+    const timeStr = formatDMTime(new Date(conv.last.createdAt));
+    const unreadBadge = conv.unread > 0 ? `<span class="dm-unread-badge">${conv.unread}</span>` : '';
+
+    item.innerHTML = `
+      ${avHtml}
+      <div class="dm-conv-item-info">
+        <div class="dm-conv-item-top">
+          <span class="dm-conv-item-name">${escapeHtml(conv.partnerName)}</span>
+          <span class="dm-conv-item-time">${timeStr}</span>
+        </div>
+        <div class="dm-conv-item-last">${escapeHtml(lastText)}${unreadBadge}</div>
+      </div>`;
+
+    item.addEventListener('click', () => {
+      const partner = {
+        id:           conv.partnerId,
+        userId:       uid,
+        name:         conv.partnerName,
+        color,
+        avatarDataUrl: avUrl,
+      };
+      openConversation(partner);
+    });
+    list.appendChild(item);
+  });
+}
+
+// ---- 会話を開く ----
+function openConversation(partner) {
+  currentPartner = partner;
+
+  // 既読にする
+  Storage.DirectMessages.markRead(currentUser.id, partner.id);
+
+  // ヘッダー更新
+  const av = document.getElementById('dm-partner-avatar');
+  if (partner.avatarDataUrl) {
+    av.innerHTML = `<img src="${partner.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    av.style.overflow = 'hidden';
+    av.style.background = 'transparent';
+  } else {
+    av.textContent = (partner.name || '?').charAt(0).toUpperCase();
+    av.style.background  = (partner.color || '#4dd0e1') + '22';
+    av.style.color       = partner.color || '#4dd0e1';
+  }
+  av.style.borderColor = partner.color || '#4dd0e1';
+  document.getElementById('dm-partner-name').textContent = partner.name || '不明';
+  document.getElementById('dm-partner-uid').textContent  = partner.userId ? '@' + partner.userId : '';
+
+  // 表示切替
+  document.getElementById('dm-no-conv').classList.add('hidden');
+  document.getElementById('dm-conv-area').classList.remove('hidden');
+  document.getElementById('dm-sidebar').classList.add('dm-sidebar-hidden');
+
+  // アクティブ表示
+  document.querySelectorAll('.dm-conv-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.partnerId === partner.id);
+  });
+
+  renderDMMessages();
+  startPoll();
+}
+
+// ---- メッセージ描画 ----
+function renderDMMessages() {
+  if (!currentPartner) return;
+  const messages = Storage.DirectMessages.getBetween(currentUser.id, currentPartner.id);
+  const container = document.getElementById('dm-messages-inner');
+  container.innerHTML = '';
+
+  if (!messages.length) {
+    container.innerHTML = `<div class="dm-start-msg">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-muted)"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <p>${escapeHtml(currentPartner.name || '')} さんとの会話を始めましょう</p>
+    </div>`;
+    return;
+  }
+
+  let lastDate = '';
+  messages.forEach(msg => {
+    const isOwn = msg.fromId === currentUser.id;
+    const date  = new Date(msg.createdAt);
+    const dateStr = formatDMDate(date);
+
+    if (dateStr !== lastDate) {
+      const div = document.createElement('div');
+      div.className = 'messages-date-divider';
+      div.innerHTML = `<span>${dateStr}</span>`;
+      container.appendChild(div);
+      lastDate = dateStr;
+    }
+
+    const row = document.createElement('div');
+    row.className = `dm-msg-row${isOwn ? ' own' : ''}`;
+    row.dataset.msgId = msg.id;
+
+    // アバター
+    const avatarData = isOwn
+      ? { color: currentUser.color || '#f4a620', avatarDataUrl: currentUser.avatarDataUrl || '', name: currentUser.name || '' }
+      : { color: currentPartner.color || '#4dd0e1', avatarDataUrl: currentPartner.avatarDataUrl || '', name: currentPartner.name || '' };
+
+    let avHtml;
+    if (avatarData.avatarDataUrl) {
+      avHtml = `<div class="avatar avatar-xs" style="border-color:${avatarData.color};overflow:hidden;background:transparent;flex-shrink:0;"><img src="${avatarData.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`;
+    } else {
+      const init = (avatarData.name || '?').charAt(0).toUpperCase();
+      avHtml = `<div class="avatar avatar-xs" style="background:${avatarData.color}22;border-color:${avatarData.color};color:${avatarData.color};flex-shrink:0;">${init}</div>`;
+    }
+
+    // バブル内容
+    let bubbleContent = '';
+    if (msg.text) bubbleContent += `<div class="dm-bubble-text">${escapeHtml(msg.text).replace(/\n/g, '<br>')}</div>`;
+    if (msg.imageData) bubbleContent += `<img src="${msg.imageData}" class="dm-bubble-img" onclick="this.requestFullscreen?.()">`;
+
+    // 削除ボタン（自分のみ）
+    const deleteBtn = isOwn
+      ? `<button class="dm-delete-btn" onclick="deleteDMMessage('${msg.id}')" title="削除">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+         </button>`
+      : '';
+
+    row.innerHTML = `
+      ${isOwn ? '' : avHtml}
+      <div class="dm-bubble-wrap">
+        <div class="dm-bubble ${isOwn ? 'own' : ''}">${bubbleContent}</div>
+        <div class="dm-bubble-meta ${isOwn ? 'own' : ''}">
+          ${deleteBtn}
+          <span class="dm-bubble-time">${formatTime(date)}</span>
+        </div>
+      </div>
+      ${isOwn ? avHtml : ''}`;
+
+    container.appendChild(row);
+  });
+
+  // 最下部にスクロール
+  const scrollEl = document.getElementById('dm-messages');
+  scrollEl.scrollTop = scrollEl.scrollHeight;
+}
+
+// ---- DM 送信 ----
+function sendDM() {
+  if (!currentPartner) return;
+  const input = document.getElementById('dm-input');
+  const text  = input.value.trim();
+  if (!text && !dmPendingImage) return;
+
+  const msg = {
+    fromId:   currentUser.id,
+    fromName: currentUser.name || currentUser.nickname,
+    toId:     currentPartner.id,
+    toName:   currentPartner.name,
+    text:     text,
+  };
+  if (dmPendingImage) { msg.imageData = dmPendingImage; dmPendingImage = null; }
+
+  Storage.DirectMessages.add(msg);
+  input.value = '';
+  input.style.height = '';
+  renderDMMediaPreview();
+  renderDMMessages();
+  renderConvList();
+}
+
+// ---- DM 削除 ----
+function deleteDMMessage(id) {
+  if (!confirm('このメッセージを削除しますか？')) return;
+  Storage.DirectMessages.delete(id, currentUser.id);
+  renderDMMessages();
+  renderConvList();
+}
+
+// ---- メディアプレビュー ----
+function renderDMMediaPreview() {
+  const wrap = document.getElementById('dm-media-preview');
+  if (!dmPendingImage) { wrap.innerHTML = ''; wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  wrap.innerHTML = `
+    <div style="position:relative;display:inline-block;">
+      <img src="${dmPendingImage}" style="max-height:80px;border-radius:8px;border:1px solid var(--border);">
+      <button onclick="dmPendingImage=null;renderDMMediaPreview();" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-muted);">✕</button>
+    </div>`;
+}
+
+// ---- ポーリング ----
+function startPoll() {
+  stopPoll();
+  dmPollTimer = setInterval(() => {
+    renderDMMessages();
+    renderConvList();
+  }, 3000);
+}
+function stopPoll() {
+  if (dmPollTimer) { clearInterval(dmPollTimer); dmPollTimer = null; }
+}
+
+// ---- ユーティリティ ----
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c])
+  );
+}
+
+function formatTime(date) {
+  return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+}
+
+function formatDMDate(date) {
+  const now = new Date();
+  const diff = now - date;
+  if (diff < 86400000 && now.getDate() === date.getDate()) return '今日';
+  if (diff < 172800000) return '昨日';
+  return `${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,'0')}/${String(date.getDate()).padStart(2,'0')}`;
+}
+
+function formatDMTime(date) {
+  const now = new Date();
+  const diff = now - date;
+  if (diff < 60000)    return 'たった今';
+  if (diff < 3600000)  return Math.floor(diff / 60000) + '分前';
+  if (diff < 86400000 && now.getDate() === date.getDate()) return formatTime(date);
+  return `${date.getMonth()+1}/${date.getDate()}`;
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+}
+</script>
+</body>
+</html>

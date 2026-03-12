@@ -10,6 +10,7 @@ const Storage = (() => {
     ROOMS:    'kushiro_rooms',
     MESSAGES: 'kushiro_messages',
     SESSION:  'kushiro_current_user',
+    DMS:      'kushiro_dms',
   };
 
   // ---- SHA-256 ハッシュ (Web Crypto API) ----
@@ -211,6 +212,60 @@ const Storage = (() => {
     toCSV() { return toCSV(this.getAll(), ['id', 'roomId', 'userId', 'userName', 'text', 'imageData', 'videoData', 'tags', 'createdAt']); },
   };
 
+
+  // ============ DirectMessages ============
+  // { id, fromId, fromName, toId, toName, text, imageData, createdAt }
+  const DirectMessages = {
+    getAll() { return loadFromStorage(KEYS.DMS); },
+    save(dms) { saveToStorage(KEYS.DMS, dms); },
+
+    // 会話一覧（自分が関わる相手ごとにまとめる）
+    getConversations(myId) {
+      const all = this.getAll().filter(m => m.fromId === myId || m.toId === myId);
+      const partnerMap = {};
+      all.forEach(m => {
+        const partnerId   = m.fromId === myId ? m.toId   : m.fromId;
+        const partnerName = m.fromId === myId ? m.toName : m.fromName;
+        if (!partnerMap[partnerId]) {
+          partnerMap[partnerId] = { partnerId, partnerName, last: m, unread: 0 };
+        } else {
+          if (m.createdAt > partnerMap[partnerId].last.createdAt) partnerMap[partnerId].last = m;
+        }
+        if (m.toId === myId && !m.read) partnerMap[partnerId].unread++;
+      });
+      return Object.values(partnerMap).sort((a, b) => b.last.createdAt.localeCompare(a.last.createdAt));
+    },
+
+    // 二者間のメッセージ取得
+    getBetween(myId, partnerId) {
+      return this.getAll()
+        .filter(m => (m.fromId === myId && m.toId === partnerId) || (m.fromId === partnerId && m.toId === myId))
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    },
+
+    add(msg) {
+      const all = this.getAll();
+      msg.id = 'dm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+      msg.createdAt = new Date().toISOString();
+      msg.read = false;
+      all.push(msg);
+      this.save(all);
+      return msg;
+    },
+
+    // 既読にする
+    markRead(myId, partnerId) {
+      const all = this.getAll().map(m =>
+        (m.fromId === partnerId && m.toId === myId) ? { ...m, read: true } : m
+      );
+      this.save(all);
+    },
+
+    delete(id, userId) {
+      this.save(this.getAll().filter(m => !(m.id === id && m.fromId === userId)));
+    },
+  };
+
   // ============ Session ============
   const Session = {
     get() { try { return JSON.parse(sessionStorage.getItem(KEYS.SESSION)); } catch { return null; } },
@@ -234,7 +289,7 @@ const Storage = (() => {
     setTimeout(() => exportCSV('kushiro_messages.csv', Messages.toCSV()), 600);
   }
 
-  return { Accounts, Users, Rooms, Messages, Session, exportAll, exportCSV, toCSV, sha256 };
+  return { Accounts, Users, Rooms, Messages, DirectMessages, Session, exportAll, exportCSV, toCSV, sha256 };
 })();
 
 window.Storage = Storage;

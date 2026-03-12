@@ -612,9 +612,9 @@
   background: var(--bg-secondary, #0f1525);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 16px;
-  padding: 24px;
-  width: 300px;
-  max-width: 90vw;
+  padding: 28px;
+  width: 400px;
+  max-width: 92vw;
   position: relative;
   animation: modal-in .18s ease;
 }
