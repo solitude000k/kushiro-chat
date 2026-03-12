@@ -149,7 +149,9 @@ async function selectRoom(roomId) {
   document.getElementById('chat-room-desc').textContent  = room.description || '';
   document.getElementById('chat-main').classList.remove('hidden');
   document.getElementById('no-room-state').classList.add('hidden');
-  document.getElementById('message-input').focus();
+  const msgInput = document.getElementById('message-input');
+  msgInput.disabled = false;
+  msgInput.focus();
 
   await refreshMessages();
 }
