@@ -670,14 +670,31 @@ function showUserProfile(userId, userName) {
   let cached = account ? null : Storage.Users.findByName(userName);
   const data = account || cached || { name: userName, userId: '', bio: '', xUrl: '', igUrl: '', fbUrl: '', color: '#f4a620', avatarDataUrl: '' };
 
-  const nickname = data.nickname || data.name || userName;
-  const uid      = data.userId || '';
-  const bio      = data.bio    || '';
-  const xUrl     = data.xUrl   || '';
-  const igUrl    = data.igUrl  || '';
-  const fbUrl    = data.fbUrl  || '';
-  const color    = data.color  || '#f4a620';
+  const nickname  = data.nickname || data.name || userName;
+  const uid       = data.userId   || '';
+  const bio       = data.bio      || '';
+  const gender    = data.gender   || '';
+  const birthdate = data.birthdate || '';
+  const xUrl      = data.xUrl     || '';
+  const igUrl     = data.igUrl    || '';
+  const fbUrl     = data.fbUrl    || '';
+  const color     = data.color    || '#f4a620';
   const avatarDataUrl = data.avatarDataUrl || '';
+
+  // 年代計算
+  function getAgeRange(bd) {
+    if (!bd) return '';
+    const birth = new Date(bd);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+    if (age < 10) return '10歳未満';
+    return Math.floor(age / 10) * 10 + '代';
+  }
+  const ageRange = getAgeRange(birthdate);
+
+  // 性別ラベル
+  const genderLabel = gender === 'male' ? '男性' : gender === 'female' ? '女性' : gender === 'other' ? 'その他' : '';
 
   // アバターHTML
   let avHtml;
@@ -722,6 +739,10 @@ function showUserProfile(userId, userName) {
           <div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">${escapeHtml(nickname)}</div>
           ${uid ? `<div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;margin-top:2px;">@${escapeHtml(uid)}</div>` : ''}
         </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:10px;font-size:0.78rem;color:var(--text-muted);">
+        <span>性別：<span style="color:${genderLabel ? 'var(--text-secondary)' : 'var(--text-muted);font-style:italic'}">${genderLabel || '登録されていません'}</span></span>
+        <span>年齢：<span style="color:${ageRange ? 'var(--text-secondary)' : 'var(--text-muted);font-style:italic'}">${ageRange || '登録されていません'}</span></span>
       </div>
       <div style="font-size:0.82rem;color:${bio ? 'var(--text-secondary)' : 'var(--text-muted)'};line-height:1.6;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:12px;font-style:${bio ? 'normal' : 'italic'}">${bio ? escapeHtml(bio) : '自己紹介が登録されていません'}</div>
       <div style="display:flex;gap:10px;margin-top:4px;">${sns.join('')}</div>
