@@ -514,3 +514,92 @@ body::before {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ================================================================
+   RESPONSIVE OVERHAUL - スマホ対応強化
+================================================================ */
+
+/* ---- ナビバー スマホ対応 ---- */
+@media (max-width: 600px) {
+  /* ヘッダー全体 */
+  .top-header {
+    padding: 0 12px;
+    height: 54px;
+  }
+  .header-brand-text { font-size: .95rem; }
+  .header-brand-sub  { display: none; }
+
+  /* ナビリンクのテキストを隠してアイコンのみ */
+  .header-nav { gap: 2px; }
+  .nav-link span, .nav-item span { display: none; }
+  .nav-link, .nav-item {
+    padding: 6px 8px;
+    min-width: 34px;
+    justify-content: center;
+  }
+  .nav-link svg, .nav-item svg { width: 17px; height: 17px; }
+
+  /* ヘッダー右の認証ボタン */
+  .header-auth { gap: 5px; }
+  .header-auth .btn { padding: 5px 10px; font-size: .75rem; }
+
+  /* ユーザー名非表示 */
+  .header-user-name { display: none; }
+  .header-user { gap: 4px; }
+
+  /* ドロップダウンの位置調整 */
+  #user-dropdown { right: -8px !important; min-width: 140px !important; }
+}
+
+/* ---- ページヒーロー スマホ ---- */
+@media (max-width: 600px) {
+  .page-hero { padding: 28px 16px 24px; }
+  .page-title { font-size: 1.6rem !important; }
+  .page-eyebrow { font-size: .7rem; }
+  .page-desc { font-size: .8rem; }
+  .page-desc-sub { font-size: .75rem; }
+
+  /* 天気ウィジェット */
+  .weather-widget { max-width: 100%; border-radius: 12px; }
+  .weather-stat-label { font-size: .62rem; min-width: 48px; }
+  .weather-stat-value { font-size: .76rem; }
+  .weather-right { min-width: 80px; padding: 12px 14px; }
+}
+
+/* ---- ニュースレイアウト スマホ ---- */
+@media (max-width: 600px) {
+  .news-layout { padding: 12px; }
+  .news-section { margin-bottom: 16px; }
+  .section-header { padding: 10px 12px; }
+  .section-icon { font-size: 1.1rem; }
+  .section-name { font-size: .85rem; }
+  .news-item { padding: 12px 14px; }
+  .news-item-title-text { font-size: .84rem; }
+  .news-item-bullets li { font-size: .76rem; }
+  .urgency-badge { font-size: .58rem; padding: 1px 6px; }
+
+  /* ステータスバー */
+  .status-bar { padding: 8px 12px; flex-wrap: wrap; gap: 6px; }
+  .status-left { font-size: .75rem; }
+  .admin-refresh-btn { font-size: .72rem; padding: 4px 10px; }
+}
+
+/* ---- フォーム スマホ ---- */
+@media (max-width: 600px) {
+  .form-input, .form-select, .form-textarea {
+    font-size: 16px; /* iOSズーム防止 */
+    padding: 9px 12px;
+  }
+  .modal { padding: 20px 16px; border-radius: var(--radius-lg); }
+  .modal-header { margin-bottom: 16px; }
+
+  /* トースト */
+  #toast-container { bottom: 12px; right: 12px; left: 12px; }
+  .toast { max-width: 100%; }
+}
+
+/* ---- ボタン タップターゲット ---- */
+@media (max-width: 600px) {
+  .btn { min-height: 40px; }
+  .btn-icon { min-width: 36px; min-height: 36px; }
+}

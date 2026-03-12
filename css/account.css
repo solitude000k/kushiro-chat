@@ -199,3 +199,17 @@
   font-size: .875rem;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
+
+/* ================================================================
+   ACCOUNT RESPONSIVE OVERHAUL
+================================================================ */
+@media (max-width: 600px) {
+  .acc-header { padding: 0 12px; height: 54px; }
+  .account-container { padding: 12px; }
+  .account-section { padding: 16px; border-radius: 12px; }
+  .account-section h3 { font-size: .95rem; }
+  .profile-card { gap: 12px; }
+  .form-input, .form-textarea, .form-select { font-size: 16px; } /* iOSズーム防止 */
+  .acc-tabs { gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .acc-tab { font-size: .78rem; padding: 6px 12px; white-space: nowrap; }
+}

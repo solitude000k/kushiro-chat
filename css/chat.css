@@ -700,3 +700,34 @@
   100% { transform: scale(1) rotate(0); }
 }
 .send-pop { animation: sendPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+
+/* ================================================================
+   CHAT RESPONSIVE OVERHAUL
+================================================================ */
+@media (max-width: 600px) {
+  /* ヘッダー */
+  .app-header { padding: 0 10px; height: 54px; }
+
+  /* チャット入力エリア */
+  .chat-input-area { padding: 8px 10px; gap: 6px; }
+  .chat-input { font-size: 16px; padding: 8px 12px; } /* iOSズーム防止 */
+  .send-btn { min-width: 38px; min-height: 38px; padding: 8px; }
+
+  /* メッセージ */
+  .message-bubble { max-width: 88%; font-size: .85rem; padding: 8px 12px; }
+  .message-author  { font-size: .8rem; }
+  .message-time    { font-size: .68rem; }
+
+  /* 画像 */
+  .message-image { max-width: 200px; max-height: 200px; }
+
+  /* ルーム一覧 */
+  .room-item { padding: 10px 12px; }
+  .room-name  { font-size: .85rem; }
+
+  /* プロフィールモーダル */
+  .user-profile-modal { padding: 20px 16px; width: calc(100vw - 32px); max-height: 90vh; overflow-y: auto; }
+
+  /* メッセージグループ */
+  .messages-container { padding: 10px; }
+}
