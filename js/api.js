@@ -219,9 +219,13 @@ const API = (() => {
     return req('GET', `/api/public-profile/${encodeURIComponent(accountId)}`);
   }
 
+  async function lookupAccount(userId) {
+    return req('GET', `/api/accounts/lookup?userId=${encodeURIComponent(userId)}`);
+  }
+
   return {
     login, adminVerify, isAdminTokenValid, adminAction,
-    getMyAccount, checkUserId, listAccounts, updateAccount, deleteAccount, adminDeleteAccount, adminSetup,
+    getMyAccount, checkUserId, listAccounts, lookupAccount, updateAccount, deleteAccount, adminDeleteAccount, adminSetup,
     listRooms, createRoom, deleteRoom,
     listMessages, postMessage, deleteMessage, adminDeleteMessage,
     getDMConversations, getDMThread, sendDM, markDMRead, deleteDM, adminListDMs,

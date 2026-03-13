@@ -157,12 +157,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (found) {
       openConversation({ id: found.partnerId, userId: found.partnerUserId||'', name: found.partnerName, color: found.partnerColor, avatarDataUrl: found.partnerAvatar||'' });
     } else {
-      // 既存会話なし → アカウントリストから userId で検索して実際のIDを取得
-      const accRes = await API.listAccounts().catch(() => ({ ok: false }));
-      const target = accRes.ok ? (accRes.accounts || []).find(a => a.userId === toId || a.nickname === toName) : null;
-      const partner = target
-        ? { id: target.id, userId: target.userId||'', name: target.nickname||target.userId||toId, color: target.color||'#f4a620', avatarDataUrl: target.avatarDataUrl||'' }
-        : { id: toId||toName, userId: toId||'', name: toName||toId||'不明', color: '#4dd0e1', avatarDataUrl: '' };
+      // 既存会話なし → userId でアカウントを直接検索（一般ユーザーでも使える専用API）
+      let partner = null;
+      if (toId) {
+        const accRes = await API.lookupAccount(toId).catch(() => ({ ok: false }));
+        if (accRes.ok && accRes.account) {
+          const a = accRes.account;
+          partner = { id: a.id, userId: a.userId||'', name: a.nickname||a.userId||toId, color: a.color||'#f4a620', avatarDataUrl: a.avatarDataUrl||'' };
+        }
+      }
+      if (!partner) {
+        partner = { id: toId||toName, userId: toId||'', name: toName||toId||'不明', color: '#4dd0e1', avatarDataUrl: '' };
+      }
       openConversation(partner);
     }
   }

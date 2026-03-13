@@ -32,10 +32,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   const defaultRoom = rooms.find(r => r.id === 'r_001') || rooms[0];
   if (defaultRoom) await selectRoom(defaultRoom.id);
 
-  pollTimer = setInterval(async () => {
-    if (currentRoom) await refreshMessages();
-    await updateDMBadge();
-  }, 3000);
+  // エラー時に間隔を延ばすバックオフ付きポーリング
+  let pollErrorCount = 0;
+  const POLL_BASE_MS = 4000;   // 通常4秒
+  const POLL_MAX_MS  = 60000;  // エラー連続時は最大60秒まで延ばす
+
+  async function poll() {
+    try {
+      if (currentRoom) await refreshMessages();
+      await updateDMBadge();
+      pollErrorCount = 0; // 成功したらリセット
+    } catch (e) {
+      pollErrorCount = Math.min(pollErrorCount + 1, 5);
+    }
+    // エラー回数に応じて次のポーリング間隔を決定（指数バックオフ）
+    const delay = Math.min(POLL_BASE_MS * Math.pow(2, pollErrorCount), POLL_MAX_MS);
+    pollTimer = setTimeout(poll, delay);
+  }
+  pollTimer = setTimeout(poll, POLL_BASE_MS);
   await updateDMBadge();
 });
 
@@ -141,6 +155,9 @@ async function updateCategoryFilters() {
 async function selectRoom(roomId) {
   visitedRooms.add(roomId);
 
+  // モバイルでサイドバーが開いていたら閉じる
+  if (typeof window.closeSidebar === 'function') window.closeSidebar();
+
   // バッジを即時DOM削除
   document.querySelectorAll('.room-item').forEach(el => {
     if (el.dataset.roomId === roomId) {
@@ -175,7 +192,11 @@ async function selectRoom(roomId) {
 // ---- メッセージ表示（差分追記方式・チカチカ防止）----
 async function refreshMessages() {
   if (!currentRoom) return;
-  const res      = await API.listMessages(currentRoom.id);
+  const roomIdAtStart = currentRoom.id; // 非同期待ち中のルーム切替を検知するため保存
+  const res = await API.listMessages(roomIdAtStart); // ネットワークエラーは呼び出し元に伝播させる
+  // await後にルームが切り替わっていたら描画しない（競合防止）
+  if (!currentRoom || currentRoom.id !== roomIdAtStart) return;
+  if (!res.ok && !res.messages) throw new Error('API error'); // バックオフ用にエラーを通知
   const messages = res.messages || [];
   const container = document.getElementById('messages-container');
   const scrollEl  = document.getElementById('messages-container');
@@ -492,7 +513,7 @@ function setupEventListeners() {
   const sidebar        = document.querySelector('.sidebar');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
   function openSidebar()  { sidebar?.classList.add('mobile-open');    sidebarOverlay?.classList.add('active'); }
-  function closeSidebar() { sidebar?.classList.remove('mobile-open'); sidebarOverlay?.classList.remove('active'); }
+  window.closeSidebar = function closeSidebar() { sidebar?.classList.remove('mobile-open'); sidebarOverlay?.classList.remove('active'); }
   sidebarToggle?.addEventListener('click', e => { e.stopPropagation(); sidebar?.classList.contains('mobile-open') ? closeSidebar() : openSidebar(); });
   sidebarOverlay?.addEventListener('click', closeSidebar);
 
@@ -511,8 +532,9 @@ function setupEventListeners() {
     window.location.href = 'login.html';
   });
 
-  // 掲示板作成モーダル
-  document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModal);
+  // 掲示板作成モーダル（モバイルではサイドバーを先に閉じる）
+  function openNewRoomModalMobile() { closeSidebar(); openNewRoomModal(); }
+  document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModalMobile);
   document.getElementById('new-room-btn-center')?.addEventListener('click', openNewRoomModal);
   document.getElementById('new-room-cancel')?.addEventListener('click', closeNewRoomModal);
   document.getElementById('new-room-submit')?.addEventListener('click', createRoom);
