@@ -10,13 +10,14 @@ const Storage = (() => {
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  // ---- セッション (sessionStorage) ----
+  // ---- セッション (localStorage) ----
+  // localStorage を使用することでタブを閉じても・ブラウザを再起動してもログイン状態を維持
   // セッション形式: { sessionToken, id, userId, email, nickname, color, avatarDataUrl,
   //                   birthdate, gender, bio, xUrl, igUrl, fbUrl, verified, ... }
   const Session = {
-    get()     { try { return JSON.parse(sessionStorage.getItem('kushiro_session')); } catch { return null; } },
-    set(data) { sessionStorage.setItem('kushiro_session', JSON.stringify(data)); },
-    clear()   { sessionStorage.removeItem('kushiro_session'); },
+    get()     { try { return JSON.parse(localStorage.getItem('kushiro_session')); } catch { return null; } },
+    set(data) { localStorage.setItem('kushiro_session', JSON.stringify(data)); },
+    clear()   { localStorage.removeItem('kushiro_session'); },
     /** APIリクエスト用セッショントークン */
     getToken() { return this.get()?.sessionToken || ''; },
   };
