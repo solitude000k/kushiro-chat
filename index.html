@@ -1,9 +1,94 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>釧チャ ～ 釧路コミュニティチャット</title>
+
+  <!-- ===== Primary SEO ===== -->
+  <title>釧チャ｜釧路市・釧路町の地域コミュニティ・掲示板・チャット・ニュース</title>
+  <meta name="description" content="釧路市・釧路町・釧路周辺の住民向け無料コミュニティサイト。掲示板でのチャット・交流、ランダムマッチング、地域の最新ニュース（事件・事故・交通・インフラ・地域イベント・行政情報・天気・気温）を毎時更新。釧路の「今」がわかる交流・出会いの場です。">
+  <meta name="keywords" content="釧路市,釧路町,釧路周辺,釧路,チャット,掲示板,コミュニティ,交流,出会い,マッチング,ランダムチャット,ニュース,最新情報,流行り,流行,直近,天気,気温,交通,インフラ,事件,事故,社会,地域イベント,行政情報,北海道,地域情報">
+  <meta name="author" content="釧チャ運営">
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+  <link rel="canonical" href="https://sencha-community.com/">
+
+  <!-- ===== Open Graph (SNS シェア) ===== -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sencha-community.com/">
+  <meta property="og:title" content="釧チャ｜釧路市・釧路町の地域コミュニティ・掲示板・チャット">
+  <meta property="og:description" content="釧路市・釧路町・釧路周辺の住民向けコミュニティ。掲示板チャット・ランダムマッチング・地域ニュース（事件・事故・交通・天気・地域イベント・行政情報）をまとめた無料交流サイトです。">
+  <meta property="og:image" content="https://sencha-community.com/images/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="釧チャ ─ 釧路コミュニティチャット">
+  <meta property="og:locale" content="ja_JP">
+
+  <!-- ===== Twitter Card ===== -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="釧チャ｜釧路市・釧路町の地域コミュニティ">
+  <meta name="twitter:description" content="釧路市・釧路町の住民が集まる無料コミュニティ。掲示板・チャット・ランダムマッチング・地域ニュース。">
+  <meta name="twitter:image" content="https://sencha-community.com/images/og-image.png">
+
+  <!-- ===== Geo / Local SEO ===== -->
+  <meta name="geo.region" content="JP-01">
+  <meta name="geo.placename" content="釧路市, 北海道">
+  <meta name="geo.position" content="42.9849;144.3820">
+  <meta name="ICBM" content="42.9849, 144.3820">
+
+  <!-- ===== Structured Data (JSON-LD) ===== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "釧チャ ─ 釧路コミュニティチャット",
+    "alternateName": ["釧チャ", "釧路コミュニティ", "sencha-community"],
+    "url": "https://sencha-community.com/",
+    "description": "釧路市・釧路町・釧路周辺の住民向け無料コミュニティサイト。掲示板・チャット・ランダムマッチング・地域ニュース（事件・事故・交通・インフラ・天気・気温・地域イベント・行政情報）",
+    "inLanguage": "ja",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://sencha-community.com/chat.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "釧チャ運営",
+      "url": "https://sencha-community.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://sencha-community.com/images/logo.svg"
+      }
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "釧チャ ─ 釧路コミュニティチャット",
+    "description": "釧路市・釧路町・釧路周辺住民向けの無料地域コミュニティサービス。掲示板チャット・ランダムマッチング・地域ニュース・出会い・交流の場を提供。",
+    "url": "https://sencha-community.com/",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "釧路市",
+      "addressRegion": "北海道",
+      "addressCountry": "JP"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 42.9849,
+      "longitude": 144.3820
+    },
+    "areaServed": [
+      { "@type": "City", "name": "釧路市" },
+      { "@type": "City", "name": "釧路町" },
+      { "@type": "AdministrativeArea", "name": "釧路周辺" }
+    ],
+    "serviceType": ["コミュニティ掲示板", "チャット", "ランダムマッチング", "地域ニュース", "交流サービス"]
+  }
+  </script>
+
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/chat.css">
@@ -413,12 +498,12 @@
   </svg>
 
   <div class="hero-content">
-    <div class="hero-badge">北海道釧路市 地域コミュニティ</div>
+    <div class="hero-badge">北海道釧路市・釧路町 地域コミュニティ</div>
     <h1 class="hero-title"><span>釧チャ</span></h1>
     <p class="hero-sub">釧路コミュニティチャット</p>
     <div class="hero-divider"></div>
     <p class="hero-desc">
-      釧路市、釧路町の住民が集まり、日常の出来事や地域情報を気楽に共有できる交流情報サイトです。掲示板での自由な雑談から30分ごとに更新される最新のニュースまで、釧路の「今」をここで掴みましょう！
+      釧路市・釧路町・釧路周辺の住民が集まる無料の地域コミュニティです。掲示板でのチャット・交流から、ランダムマッチング・出会い、釧路の最新ニュース（事件・事故・交通・インフラ・天気・気温・地域イベント・行政情報）まで、釧路の「今」と「流行り」をリアルタイムで共有できます。
     </p>
     <div class="hero-actions">
       <a href="chat.html" class="btn btn-primary" style="padding:11px 28px;font-size:.92rem;gap:7px;">
@@ -453,33 +538,33 @@
   <div class="features-grid">
     <div class="feature-card">
       <span class="feature-icon">💬</span>
-      <div class="feature-title">コミュニティ掲示板</div>
-      <p class="feature-desc">雑談・グルメ・趣味など好きなテーマで掲示板を作成して、地域の人たちと自由に交流できます。</p>
+      <div class="feature-title">掲示板チャット・コミュニティ交流</div>
+      <p class="feature-desc">釧路市・釧路町・釧路周辺の住民が集まる掲示板で自由にチャット。雑談・グルメ・趣味など好きなテーマでコミュニティを作り、地域の人たちとリアルタイムに交流できます。</p>
     </div>
     <div class="feature-card">
       <span class="feature-icon">📰</span>
-      <div class="feature-title">釧路ニュース</div>
-      <p class="feature-desc">最新の釧路情報を自動収集。事件・交通・イベント情報をリアルタイムで確認できます。</p>
+      <div class="feature-title">釧路の最新ニュース・直近情報</div>
+      <p class="feature-desc">釧路周辺の最新情報を毎時自動収集。事件・事故・交通・インフラ・天気・気温・流行り・地域イベント・行政情報など釧路の「今」をリアルタイムで確認できます。</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🎲</span>
+      <div class="feature-title">ランダムチャット・マッチング・出会い</div>
+      <p class="feature-desc">釧路市・釧路町在住のユーザーとランダムにマッチング。知らない人と気軽にチャットして、地域での新しい出会いや交流のきっかけを作れます。</p>
     </div>
     <div class="feature-card">
       <span class="feature-icon">✉️</span>
       <div class="feature-title">ダイレクトメッセージ</div>
-      <p class="feature-desc">1対1のプライベートメッセージ機能でお互いに直接連絡が取れます。既読管理も可能です。</p>
+      <p class="feature-desc">1対1のプライベートDM機能でお互いに直接連絡が取れます。釧路の地域コミュニティ内でより深い交流が可能です。</p>
     </div>
     <div class="feature-card">
       <span class="feature-icon">🛡️</span>
       <div class="feature-title">安心・安全な設計</div>
-      <p class="feature-desc">メール認証必須でなりすましを防止。管理者によるコンテンツ管理で健全なコミュニティを維持します。</p>
-    </div>
-    <div class="feature-card">
-      <span class="feature-icon">🎨</span>
-      <div class="feature-title">プロフィールカスタマイズ</div>
-      <p class="feature-desc">アイコン画像・テーマカラー・自己紹介など、自分らしいプロフィールを設定できます。</p>
+      <p class="feature-desc">メール認証必須でなりすましを防止。管理者によるコンテンツ管理で健全なコミュニティを維持します。釧路市民が安心して交流できる場所です。</p>
     </div>
     <div class="feature-card">
       <span class="feature-icon">🌊</span>
-      <div class="feature-title">釧路に馴染んだコミュニティ</div>
-      <p class="feature-desc">釧路市・釧路町に特化したローカルコミュニティ。地域に沿ったあらゆる情報を知り、交流できる場所として設計しました。</p>
+      <div class="feature-title">釧路特化のローカルコミュニティ</div>
+      <p class="feature-desc">釧路市・釧路町・釧路周辺に特化したローカルコミュニティ。社会・流行・直近の地域情報をまとめて知れる釧路住民のための交流・情報共有プラットフォームです。</p>
     </div>
   </div>
 </section>
@@ -498,8 +583,8 @@
 
 <!-- ===== CTA ===== -->
 <section class="cta-section">
-  <h2 class="cta-title">釧路コミュニティに参加しよう</h2>
-  <p class="cta-desc">無料で今すぐ参加できます。メールアドレスを使って今すぐ登録しましょう！</p>
+  <h2 class="cta-title">釧路のコミュニティに参加しよう</h2>
+  <p class="cta-desc">釧路市・釧路町・釧路周辺にお住まいの方なら誰でも無料で参加できます。掲示板チャット・ランダムマッチング・地域ニュースをすぐにご利用いただけます。</p>
   <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
     <a href="login.html#register" class="btn btn-primary" style="padding:12px 32px;font-size:.95rem;">
       無料で新規登録
@@ -510,12 +595,27 @@
   </div>
 </section>
 
+<!-- ===== SEOテキストブロック ===== -->
+<section style="max-width:900px;margin:0 auto;padding:40px 24px 20px;color:var(--text-muted);font-size:.8rem;line-height:2;">
+  <h2 style="font-size:.95rem;color:var(--text-secondary);margin-bottom:12px;font-family:var(--font-serif);">釧チャについて</h2>
+  <p>
+    <strong style="color:var(--amber);">釧チャ</strong>は、北海道<strong>釧路市</strong>・<strong>釧路町</strong>・<strong>釧路周辺</strong>の地域住民のための無料コミュニティサービスです。
+    <strong>掲示板</strong>での自由な<strong>チャット</strong>・<strong>交流</strong>、<strong>ランダムチャット</strong>による地域内<strong>マッチング</strong>・<strong>出会い</strong>、
+    そして釧路の<strong>最新情報</strong>・<strong>直近</strong>の<strong>ニュース</strong>（<strong>天気</strong>・<strong>気温</strong>・<strong>交通</strong>・<strong>インフラ</strong>・<strong>事件</strong>・<strong>事故</strong>・<strong>社会</strong>・<strong>地域イベント</strong>・<strong>行政情報</strong>）を毎時更新でお届けします。
+    釧路の<strong>流行り</strong>・<strong>流行</strong>もまとめて確認できる、釧路住民のための<strong>コミュニティ</strong>プラットフォームです。
+  </p>
+</section>
+
 <!-- ===== フッター ===== -->
 <footer class="top-footer">
   <p>🌊 <strong style="color:var(--amber);">釧チャ</strong> ─ 釧路コミュニティチャット</p>
-  <p style="margin-top:6px;">北海道釧路市・釧路町の地域住民向け交流情報サイト</p>
+  <p style="margin-top:6px;">北海道釧路市・釧路町・釧路周辺の地域住民向け交流・掲示板・ニュースサイト</p>
   <p style="margin-top:10px; font-size:.68rem; color:rgba(255,255,255,0.25);">
-    <a href="login.html">ログイン</a> ／ <a href="chat.html">掲示板</a>
+    <a href="login.html">ログイン</a> ／
+    <a href="chat.html">掲示板</a> ／
+    <a href="news.html">釧路ニュース</a> ／
+    <a href="random.html">ランダムチャット</a> ／
+    <a href="dm.html">DM</a>
   </p>
 </footer>
 

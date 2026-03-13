@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /admin-setup.html
+Disallow: /account.html
+Disallow: /verify.html
+
+# サイトマップ
+Sitemap: https://sencha-community.com/sitemap.xml
