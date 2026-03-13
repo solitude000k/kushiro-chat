@@ -568,9 +568,16 @@ async function loadNews(forceRefresh = false) {
 
     if (stale) {
       const age = Math.floor((Date.now() - (data.fetchedAt||0)) / 60000);
-      note.textContent = `⚠ API制限中のため、約${age}分前の情報を表示しています。しばらくしてから「更新」ボタンをお試しください。`;
       note.style.display = '';
       note.style.color = '#ef5350';
+      // 管理者にはエラー詳細も表示
+      const session = Storage.Session.get();
+      const isAdmin = session && session.userId === 'Administrator';
+      if (isAdmin && data.lastError) {
+        note.innerHTML = `⚠ 自動更新が遅延中（約${age}分前の情報）<br><span style="font-size:0.72rem;opacity:0.8;">最終エラー: ${escHtml(data.lastError)}</span>`;
+      } else {
+        note.textContent = `⚠ データの自動更新が遅れています（約${age}分前の情報）`;
+      }
     } else if (cached) {
       const age = Math.floor((Date.now() - (data.fetchedAt||0)) / 60000);
       note.textContent = `⏱ このデータは約${age}分前に取得されたものです。30分ごとに自動更新されます。`;
