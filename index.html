@@ -11,11 +11,13 @@
     body { overflow-x: hidden; }
 
         /* ===== ヒーロー ===== */
+    /* 開発中バナー分のオフセット */
+    .app-header { top: 37px !important; }
     .hero {
       position: relative; min-height: 100vh;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      text-align: center; padding: 80px 20px 60px;
+      text-align: center; padding: 117px 20px 60px; /* 80px + 37px */
       overflow: hidden;
     }
     .hero-bg {
@@ -243,6 +245,40 @@
 </head>
 <body>
 
+<!-- ===== 開発中バナー ===== -->
+<div id="dev-notice-bar" style="
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:linear-gradient(90deg,rgba(20,28,50,0.97),rgba(18,25,45,0.97));
+  border-bottom:1px solid rgba(244,166,32,0.3);
+  padding:8px 16px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  flex-wrap:wrap;
+  font-size:0.76rem;
+  color:var(--text-secondary,#9aa5c4);
+  backdrop-filter:blur(6px);
+">
+  <span style="display:flex;align-items:center;gap:5px;">
+    <span style="font-size:0.8rem;">🛠️</span>
+    現在開発中のため不具合やお気づきの点等あれば管理者へDMをお願いします
+  </span>
+  <button id="dm-admin-btn" onclick="dmAdmin()" style="
+    padding:4px 12px;
+    background:rgba(244,166,32,0.15);
+    border:1px solid rgba(244,166,32,0.4);
+    border-radius:20px;
+    color:var(--amber,#f4a620);
+    font-size:0.72rem;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+    display:flex;align-items:center;gap:5px;
+    transition:all 0.15s;
+  ">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    管理者にDMを送る
+  </button>
+</div>
+
 <!-- ===== ヘッダー ===== -->
 <header class="app-header" style="position:fixed;top:0;left:0;right:0;z-index:100;">
   <a href="index.html" class="header-brand">
@@ -402,12 +438,12 @@
   </svg>
 
   <div class="hero-content">
-    <div class="hero-badge">🌊 北海道釧路市 地域コミュニティ</div>
+    <div class="hero-badge">北海道釧路市 地域コミュニティ</div>
     <h1 class="hero-title"><span>釧チャ</span></h1>
     <p class="hero-sub">釧路コミュニティチャット</p>
     <div class="hero-divider"></div>
     <p class="hero-desc">
-      釧路市、釧路町の住民が集まり、日常の出来事や地域情報を気楽に共有できるコミュニティプラットフォームです。掲示板での自由な雑談から30分ごとに更新される最新のニュースまで、釧路の「今」をここで掴みましょう！
+      釧路市、釧路町の住民が集まり、日常の出来事や地域情報を気楽に共有できる交流情報サイトです。掲示板での自由な雑談から30分ごとに更新される最新のニュースまで、釧路の「今」をここで掴みましょう！
     </p>
     <div class="hero-actions">
       <a href="chat.html" class="btn btn-primary" style="padding:11px 28px;font-size:.92rem;gap:7px;">
@@ -491,7 +527,7 @@
 <!-- ===== フッター ===== -->
 <footer class="top-footer">
   <p>🌊 <strong style="color:var(--amber);">釧チャ</strong> ─ 釧路コミュニティチャット</p>
-  <p style="margin-top:6px;">北海道釧路市・釧路町の地域住民向けコミュニティプラットフォーム</p>
+  <p style="margin-top:6px;">北海道釧路市・釧路町の地域住民向け交流情報サイト</p>
   <p style="margin-top:10px; font-size:.68rem; color:rgba(255,255,255,0.25);">
     <a href="login.html">ログイン</a> ／ <a href="chat.html">掲示板</a>
   </p>
@@ -533,6 +569,17 @@
     window.location.href = 'login.html';
   });
 })();
+
+// 管理者DM遷移
+function dmAdmin() {
+  const sess = Storage.Session.get();
+  if (sess) {
+    // ログイン済み → 管理者とのDMページへ（管理者のuserIdパラメータ付き）
+    window.location.href = 'dm.html?to=Administrator';
+  } else {
+    window.location.href = 'login.html';
+  }
+}
 </script>
   <script src="js/effects.js"></script>
 </body>

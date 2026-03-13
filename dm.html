@@ -154,10 +154,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const res   = await API.getDMConversations().catch(() => ({ ok: false }));
     const convs = res.ok ? (res.conversations || []) : [];
     const found = convs.find(c => c.partnerUserId === toId || c.partnerId === toId || c.partnerName === toName);
-    const partner = found
-      ? { id: found.partnerId, userId: found.partnerUserId||'', name: found.partnerName, color: found.partnerColor, avatarDataUrl: found.partnerAvatar||'' }
-      : { id: toId||toName, userId: toId||'', name: toName||toId||'不明', color: '#4dd0e1', avatarDataUrl: '' };
-    openConversation(partner);
+    if (found) {
+      openConversation({ id: found.partnerId, userId: found.partnerUserId||'', name: found.partnerName, color: found.partnerColor, avatarDataUrl: found.partnerAvatar||'' });
+    } else {
+      // 既存会話なし → アカウントリストから userId で検索して実際のIDを取得
+      const accRes = await API.listAccounts().catch(() => ({ ok: false }));
+      const target = accRes.ok ? (accRes.accounts || []).find(a => a.userId === toId || a.nickname === toName) : null;
+      const partner = target
+        ? { id: target.id, userId: target.userId||'', name: target.nickname||target.userId||toId, color: target.color||'#f4a620', avatarDataUrl: target.avatarDataUrl||'' }
+        : { id: toId||toName, userId: toId||'', name: toName||toId||'不明', color: '#4dd0e1', avatarDataUrl: '' };
+      openConversation(partner);
+    }
   }
 
   document.getElementById('dm-send-btn').addEventListener('click', sendDM);
