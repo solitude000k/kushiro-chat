@@ -26,8 +26,7 @@
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 12px rgba(0,0,0,0.4);
   z-index: 100;
-  position: sticky;
-  top: 0;
+  /* position:sticky は overflow:hidden の親内では無効 → 削除してグリッド行計算を安定させる */
 }
 .header-brand {
   display: flex;
@@ -84,8 +83,9 @@
   min-height: 0;   /* グリッド内でflexがはみ出さないよう */
 }
 .sidebar-section {
-  padding: 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 .sidebar-title {
   font-size: 0.65rem;
@@ -93,15 +93,17 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .room-list {
   flex: 1;
+  min-height: 0;   /* flex子でoverflow-y:autoが効くために必須 */
   overflow-y: auto;
-  padding: 8px;
+  overflow-x: hidden;
+  padding: 6px;
 }
 .room-item {
   display: flex;
@@ -146,11 +148,17 @@
 /* Category filter */
 .category-filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;        /* 折り返し禁止 → 1行固定 */
   gap: 5px;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+  scrollbar-width: none;    /* Firefox */
+  -ms-overflow-style: none; /* IE */
 }
+.category-filters::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 .category-btn {
   padding: 3px 10px;
   border-radius: 999px;
