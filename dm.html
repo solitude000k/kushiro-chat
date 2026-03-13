@@ -147,23 +147,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   await renderConvList();
 
   const params = new URLSearchParams(window.location.search);
-  const toId   = params.get('to');
-  const toName = params.get('name') || '';
+  const toId    = params.get('to');
+  const toEmail = params.get('email');
+  const toName  = params.get('name') || '';
 
-  if (toId || toName) {
+  if (toId || toEmail || toName) {
     const res   = await API.getDMConversations().catch(() => ({ ok: false }));
     const convs = res.ok ? (res.conversations || []) : [];
     const found = convs.find(c => c.partnerUserId === toId || c.partnerId === toId || c.partnerName === toName);
     if (found) {
       openConversation({ id: found.partnerId, userId: found.partnerUserId||'', name: found.partnerName, color: found.partnerColor, avatarDataUrl: found.partnerAvatar||'' });
     } else {
-      // 既存会話なし → userId でアカウントを直接検索（一般ユーザーでも使える専用API）
+      // 既存会話なし → email または userId でアカウントを直接検索
       let partner = null;
-      if (toId) {
-        const accRes = await API.lookupAccount(toId).catch(() => ({ ok: false }));
+      const lookupArg = toEmail ? { email: toEmail } : toId ? { userId: toId } : null;
+      if (lookupArg) {
+        const accRes = await API.lookupAccount(lookupArg).catch(() => ({ ok: false }));
         if (accRes.ok && accRes.account) {
           const a = accRes.account;
-          partner = { id: a.id, userId: a.userId||'', name: a.nickname||a.userId||toId, color: a.color||'#f4a620', avatarDataUrl: a.avatarDataUrl||'' };
+          partner = { id: a.id, userId: a.userId||'', name: a.nickname||a.userId||toId||toEmail, color: a.color||'#f4a620', avatarDataUrl: a.avatarDataUrl||'' };
         }
       }
       if (!partner) {

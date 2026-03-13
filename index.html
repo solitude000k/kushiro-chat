@@ -550,7 +550,7 @@ function dmAdmin() {
   const sess = Storage.Session.get();
   if (sess) {
     // ログイン済み → 管理者とのDMページへ（管理者のuserIdパラメータ付き）
-    window.location.href = 'dm.html?to=Administrator';
+    window.location.href = 'dm.html?email=solitude000k%40gmail.com';
   } else {
     window.location.href = 'login.html';
   }

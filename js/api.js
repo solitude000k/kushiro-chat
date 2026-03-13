@@ -219,7 +219,8 @@ const API = (() => {
     return req('GET', `/api/public-profile/${encodeURIComponent(accountId)}`);
   }
 
-  async function lookupAccount(userId) {
+  async function lookupAccount({ userId, email } = {}) {
+    if (email) return req('GET', `/api/accounts/lookup?email=${encodeURIComponent(email)}`);
     return req('GET', `/api/accounts/lookup?userId=${encodeURIComponent(userId)}`);
   }
 
