@@ -8,6 +8,8 @@
   grid-template-columns: 280px 1fr;
   grid-template-rows: 60px 1fr;
   height: 100vh;
+  max-height: 100vh;   /* ページ全体スクロールを防ぐ */
+  overflow: hidden;
   position: relative;
   z-index: 1;
 }
@@ -79,6 +81,7 @@
   flex-direction: column;
   overflow: hidden;
   height: 100%;
+  min-height: 0;   /* グリッド内でflexがはみ出さないよう */
 }
 .sidebar-section {
   padding: 16px;
@@ -168,6 +171,8 @@
   flex-direction: column;
   overflow: hidden;
   background: var(--bg-dark);
+  height: 100%;
+  min-height: 0;   /* グリッドセル内でオーバーフローしないよう */
 }
 
 /* Chat header */
@@ -697,6 +702,8 @@
   .app-layout {
     grid-template-columns: 1fr;
     grid-template-rows: 60px 1fr;
+    max-height: 100vh;
+    overflow: hidden;
   }
   .sidebar {
     position: fixed;

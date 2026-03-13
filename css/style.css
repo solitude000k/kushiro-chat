@@ -52,6 +52,12 @@
 /* ---- Reset & Base ---- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 17.5px; scroll-behavior: smooth; }
+/* チャット画面用：ページ全体スクロールを防ぎ各ペインのみスクロール */
+html.chat-page,
+html.chat-page body {
+  height: 100%;
+  overflow: hidden;
+}
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-deep);
