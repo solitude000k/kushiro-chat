@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理者ページ ～ 釧チャ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/account.css">
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5MBEHVJVDS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5MBEHVJVDS');
+</script>
+<style>
+/* ===== 管理者ページ専用スタイル ===== */
+.admin-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* タブ */
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.admin-tab {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: relative;
+}
+.admin-tab:hover { background: var(--bg-elevated); color: var(--text-secondary); }
+.admin-tab.active {
+  background: rgba(239,83,80,0.15);
+  color: #ef5350;
+  border: 1px solid rgba(239,83,80,0.3);
+}
+.admin-tab-badge {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: #ef5350;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  min-width: 16px; height: 16px;
+  border-radius: 8px;
+  padding: 0 4px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+/* タブパネル */
+.admin-panel {
+  display: none;
+}
+.admin-panel.active { display: block; }
+
+/* セクション */
+.admin-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.admin-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ef5350;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(239,83,80,0.2);
+}
+
+/* アカウント管理 */
+.admin-search-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+.admin-search-wrap svg {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+.admin-search-wrap input {
+  width: 100%; padding: 9px 14px 9px 36px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text-primary);
+  font-size: 0.82rem; box-sizing: border-box;
+}
+.admin-account-list { display: flex; flex-direction: column; gap: 8px; }
+.admin-acc-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.admin-acc-info { flex: 1; min-width: 0; }
+.admin-acc-name { font-size: 0.84rem; font-weight: 600; color: var(--text-primary); }
+.admin-acc-meta { font-size: 0.68rem; color: var(--text-muted); font-family: monospace; }
+.admin-del-btn {
+  padding: 5px 12px;
+  background: rgba(239,83,80,0.12); color: #ef5350;
+  border: 1px solid rgba(239,83,80,0.3); border-radius: 8px;
+  cursor: pointer; font-size: 0.72rem; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.admin-del-btn:hover { background: rgba(239,83,80,0.25); }
+
+/* DM監視 */
+.dm-monitor-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 16px;
+  height: calc(100vh - 320px);
+  min-height: 400px;
+}
+.dm-conv-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.dm-conv-panel-header {
+  padding: 12px 14px;
+  font-size: 0.78rem; font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dm-monitor-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+.dm-monitor-item:hover { background: var(--bg-card); }
+.dm-monitor-item.active { background: rgba(239,83,80,0.08); border-left: 3px solid #ef5350; }
+.dm-monitor-item.stale { opacity: 0.45; }
+.dm-monitor-item.flagged { background: rgba(239,83,80,0.06); }
+.dm-flag-badge {
+  position: absolute; top: 6px; right: 8px;
+  background: #ef5350; color: #fff;
+  font-size: 0.58rem; font-weight: 700;
+  padding: 2px 5px; border-radius: 6px;
+  display: flex; align-items: center; gap: 3px;
+}
+.dm-stale-badge {
+  font-size: 0.58rem; color: var(--text-muted);
+  background: var(--bg-surface); border: 1px solid var(--border);
+  padding: 1px 5px; border-radius: 4px; flex-shrink: 0;
+}
+.dm-monitor-names {
+  flex: 1; min-width: 0;
+}
+.dm-monitor-pair {
+  font-size: 0.76rem; font-weight: 600; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dm-monitor-last {
+  font-size: 0.64rem; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px;
+}
+.dm-thread-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.dm-thread-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dm-thread-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dm-thread-msg {
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+.dm-thread-msg.flagged-msg {
+  background: rgba(239,83,80,0.08);
+  border-color: rgba(239,83,80,0.3);
+}
+.dm-thread-msg-meta {
+  font-size: 0.64rem; color: var(--text-muted);
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.dm-thread-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 0.82rem;
+  gap: 8px;
+}
+.ng-highlight {
+  background: rgba(239,83,80,0.25);
+  color: #ef5350;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 700;
+}
+.filter-btns {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.filter-btn {
+  padding: 4px 10px; font-size: 0.72rem;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-muted);
+  cursor: pointer; transition: all 0.15s;
+}
+.filter-btn.active {
+  background: rgba(239,83,80,0.15); color: #ef5350;
+  border-color: rgba(239,83,80,0.3);
+}
+
+@media (max-width: 700px) {
+  .dm-monitor-grid { grid-template-columns: 1fr; height: auto; }
+  .dm-conv-panel { max-height: 300px; }
+}
+</style>
+</head>
+<body>
+<div class="night-bg"></div>
+
+<!-- ===== ヘッダー ===== -->
+<header class="acc-header">
+  <a href="account.html" class="acc-back">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    アカウント管理に戻る
+  </a>
+  <div class="acc-header-title" style="display:flex;align-items:center;gap:8px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef5350" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    管理者ページ
+  </div>
+  <button class="btn btn-ghost btn-sm" id="logout-btn">ログアウト</button>
+</header>
+
+<!-- ===== メイン ===== -->
+<div class="admin-layout">
+
+  <!-- タブ -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="accounts">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      アカウント管理
+    </button>
+    <button class="admin-tab" data-tab="dms" id="dms-tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      DM監視
+      <span class="admin-tab-badge" id="flagged-count-badge"></span>
+    </button>
+  </div>
+
+  <!-- アカウント管理パネル -->
+  <div class="admin-panel active" id="panel-accounts">
+    <div class="admin-section">
+      <div class="admin-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        ユーザーアカウント管理
+        <span style="font-size:0.65rem;background:rgba(239,83,80,0.15);color:#ef5350;border:1px solid rgba(239,83,80,0.3);padding:2px 8px;border-radius:10px;margin-left:4px;">Administrator</span>
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:14px;">アカウントの強制削除が可能です。各操作には管理者パスワードの再認証が必要です。</p>
+      <div class="admin-search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="admin-search" placeholder="ユーザーID・ニックネーム・メールで検索…" oninput="renderAccountList(this.value)">
+      </div>
+      <div class="admin-account-list" id="admin-account-list">
+        <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:.8rem;">
+          <button id="load-accounts-btn" style="padding:8px 20px;background:rgba(239,83,80,0.15);color:#ef5350;border:1px solid rgba(239,83,80,0.3);border-radius:10px;cursor:pointer;font-size:.82rem;">
+            🔒 管理者認証してリストを読み込む
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DM監視パネル -->
+  <div class="admin-panel" id="panel-dms">
+    <div class="admin-section" style="padding-bottom:0;border-bottom:none;">
+      <div class="admin-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        DM会話監視
+      </div>
+      <div class="filter-btns">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">すべて</button>
+        <button class="filter-btn" data-filter="recent" onclick="setFilter('recent',this)">24時間以内</button>
+        <button class="filter-btn" data-filter="flagged" onclick="setFilter('flagged',this)">
+          ⚠ 要確認
+          <span id="filter-flagged-count" style="display:none;margin-left:4px;background:#ef5350;color:#fff;padding:0 4px;border-radius:4px;font-size:.6rem;"></span>
+        </button>
+      </div>
+    </div>
+    <div class="dm-monitor-grid" id="dm-monitor-grid">
+      <div class="dm-conv-panel" id="dm-conv-panel">
+        <div class="dm-conv-panel-header">
+          <span>会話一覧</span>
+          <button id="load-dms-btn" onclick="loadDMs()" style="padding:4px 10px;background:rgba(239,83,80,0.12);color:#ef5350;border:1px solid rgba(239,83,80,0.3);border-radius:6px;cursor:pointer;font-size:.7rem;">
+            🔒 読み込む
+          </button>
+        </div>
+        <div id="dm-conv-list" style="flex:1;overflow-y:auto;">
+          <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:.78rem;">「読み込む」ボタンを押してください</div>
+        </div>
+      </div>
+      <div class="dm-thread-panel" id="dm-thread-panel">
+        <div class="dm-thread-header" id="dm-thread-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          会話を選択してください
+        </div>
+        <div class="dm-thread-messages" id="dm-thread-messages">
+          <div class="dm-thread-empty">
+            <div style="font-size:2rem;">💬</div>
+            左のリストから会話を選択すると内容が表示されます
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.admin-layout -->
+
+<div id="toast-container"></div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/api.js"></script>
+<script>
+// ===== 認証チェック =====
+const currentUser = Storage.Session.get();
+if (!currentUser) { window.location.href = 'login.html'; }
+if (currentUser?.userId !== 'Administrator') { window.location.href = 'index.html'; }
+
+// ログアウト
+document.getElementById('logout-btn').addEventListener('click', () => {
+  Storage.Session.clear();
+  window.location.href = 'login.html';
+});
+
+// ===== タブ切り替え =====
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== NG ワード =====
+const NG_WORDS = ['死ね','殺','暴力','うざい','きもい','ばか','アホ','クズ','エロ','セックス','ヌード','裸','18禁','グロ','自殺','脅','レイプ','わいせつ','ポルノ'];
+
+function highlightNG(text) {
+  if (!text) return '';
+  let escaped = escapeHtml(text);
+  NG_WORDS.forEach(w => {
+    escaped = escaped.replaceAll(w, `<span class="ng-highlight">${w}</span>`);
+  });
+  return escaped;
+}
+
+// ===== アカウント管理 =====
+let allAccounts = null;
+
+document.getElementById('load-accounts-btn').addEventListener('click', () => {
+  API.adminAction('管理者パネルにアクセスしますか？', () => loadAccounts());
+});
+
+async function loadAccounts() {
+  const list = document.getElementById('admin-account-list');
+  list.innerHTML = '<div style="text-align:center;padding:12px;font-size:.78rem;color:var(--text-muted);">読み込み中...</div>';
+  const res = await API.listAccounts().catch(() => ({ ok: false, error: 'API接続エラー' }));
+  if (!res.ok) {
+    list.innerHTML = `<div style="text-align:center;padding:12px;font-size:.78rem;color:#ef5350;">${escapeHtml(res.error||'読み込みに失敗しました')}</div>`;
+    return;
+  }
+  allAccounts = (res.accounts || []).filter(a => a.userId !== 'Administrator');
+  renderAccountList('');
+}
+
+function renderAccountList(query) {
+  if (!allAccounts) return;
+  const list = document.getElementById('admin-account-list');
+  const q = (query || '').trim().toLowerCase();
+  let accounts = allAccounts;
+  if (q) accounts = accounts.filter(a =>
+    (a.userId||'').toLowerCase().includes(q) ||
+    (a.nickname||'').toLowerCase().includes(q) ||
+    (a.email||'').toLowerCase().includes(q)
+  );
+  if (!accounts.length) {
+    list.innerHTML = '<div style="text-align:center;padding:16px;font-size:.8rem;color:var(--text-muted);">該当ユーザーなし</div>';
+    return;
+  }
+  list.innerHTML = '';
+  accounts.forEach(acc => {
+    const color = acc.color || '#f4a620';
+    const init  = (acc.nickname||'?').charAt(0).toUpperCase();
+    const avHtml = acc.avatarDataUrl
+      ? `<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid ${color};flex-shrink:0;"><img src="${acc.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;"></div>`
+      : `<div style="width:34px;height:34px;border-radius:50%;background:${color}22;border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;">${escapeHtml(init)}</div>`;
+    const item = document.createElement('div');
+    item.className = 'admin-acc-item';
+    item.innerHTML = `
+      ${avHtml}
+      <div class="admin-acc-info">
+        <div class="admin-acc-name">${escapeHtml(acc.nickname||'')}</div>
+        <div class="admin-acc-meta">@${escapeHtml(acc.userId||'')} · ${escapeHtml(acc.email)}</div>
+      </div>
+      <button class="admin-del-btn" data-id="${acc.id}" data-name="${escapeHtml(acc.nickname||acc.email)}">削除</button>`;
+    item.querySelector('.admin-del-btn').addEventListener('click', function() {
+      API.adminAction(`「${this.dataset.name}」のアカウントを強制削除しますか？\nそのユーザーのメッセージも全て削除されます。`, async () => {
+        const r = await API.adminDeleteAccount(this.dataset.id);
+        if (r.ok) {
+          showToast(`「${this.dataset.name}」を削除しました`, 'success');
+          allAccounts = allAccounts.filter(a => a.id !== this.dataset.id);
+          renderAccountList(document.getElementById('admin-search').value);
+        } else {
+          showToast(r.error || '削除に失敗しました', 'error');
+        }
+      });
+    });
+    list.appendChild(item);
+  });
+}
+
+// ===== DM監視 =====
+let allConvs = [];
+let currentFilter = 'all';
+let selectedConvKey = null;
+const NOW_THRESHOLD = 24 * 60 * 60 * 1000; // 24時間
+
+async function loadDMs() {
+  document.getElementById('load-dms-btn').textContent = '読み込み中…';
+  API.adminAction('DM会話を監視しますか？', async () => {
+    const res = await API.adminListDMs().catch(() => ({ ok: false }));
+    document.getElementById('load-dms-btn').textContent = '🔄 更新';
+    if (!res.ok) { showToast('DM取得に失敗しました', 'error'); return; }
+    allConvs = res.conversations || [];
+    const flagCount = allConvs.filter(c => c.flagged).length;
+    // バッジ更新
+    const badge = document.getElementById('flagged-count-badge');
+    const filterCount = document.getElementById('filter-flagged-count');
+    if (flagCount > 0) {
+      badge.textContent = flagCount;
+      badge.style.display = 'inline-flex';
+      filterCount.textContent = flagCount;
+      filterCount.style.display = 'inline';
+    }
+    renderConvList();
+  });
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderConvList();
+}
+
+function renderConvList() {
+  const list = document.getElementById('dm-conv-list');
+  const now  = Date.now();
+  let convs  = allConvs;
+  if (currentFilter === 'recent')  convs = convs.filter(c => (now - c.lastAt) < NOW_THRESHOLD);
+  if (currentFilter === 'flagged') convs = convs.filter(c => c.flagged);
+
+  if (!convs.length) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:.78rem;">該当する会話がありません</div>';
+    return;
+  }
+  list.innerHTML = '';
+  convs.forEach(conv => {
+    const isRecent = (now - conv.lastAt) < NOW_THRESHOLD;
+    const item = document.createElement('div');
+    item.className = 'dm-monitor-item'
+      + (conv.flagged ? ' flagged' : '')
+      + (!isRecent ? ' stale' : '')
+      + (selectedConvKey === conv.key ? ' active' : '');
+    const timeStr = formatAdminTime(conv.lastAt);
+    item.innerHTML = `
+      ${conv.flagged ? '<span class="dm-flag-badge">⚠ 要確認</span>' : ''}
+      <div style="display:flex;flex-direction:column;gap:1px;width:18px;flex-shrink:0;">
+        <div style="width:16px;height:16px;border-radius:50%;background:${conv.user1Color||'#4dd0e1'}22;border:1px solid ${conv.user1Color||'#4dd0e1'};font-size:.55rem;display:flex;align-items:center;justify-content:center;color:${conv.user1Color||'#4dd0e1'};font-weight:700;">${(conv.user1Name||'?').charAt(0).toUpperCase()}</div>
+        <div style="width:16px;height:16px;border-radius:50%;background:${conv.user2Color||'#f4a620'}22;border:1px solid ${conv.user2Color||'#f4a620'};font-size:.55rem;display:flex;align-items:center;justify-content:center;color:${conv.user2Color||'#f4a620'};font-weight:700;">${(conv.user2Name||'?').charAt(0).toUpperCase()}</div>
+      </div>
+      <div class="dm-monitor-names">
+        <div class="dm-monitor-pair">${escapeHtml(conv.user1Name||'?')} ↔ ${escapeHtml(conv.user2Name||'?')}</div>
+        <div class="dm-monitor-last">${escapeHtml((conv.lastMessage||'').substring(0,40))}</div>
+      </div>
+      ${!isRecent ? '<span class="dm-stale-badge">古い</span>' : ''}
+      <div style="font-size:.6rem;color:var(--text-muted);flex-shrink:0;margin-left:4px;">${timeStr}</div>`;
+    item.addEventListener('click', () => openConv(conv));
+    list.appendChild(item);
+  });
+}
+
+function openConv(conv) {
+  selectedConvKey = conv.key;
+  renderConvList();
+  const header = document.getElementById('dm-thread-header');
+  header.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    ${escapeHtml(conv.user1Name||'?')} ↔ ${escapeHtml(conv.user2Name||'?')}
+    ${conv.flagged ? '<span style="font-size:.65rem;background:rgba(239,83,80,0.2);color:#ef5350;border:1px solid rgba(239,83,80,0.3);padding:2px 8px;border-radius:6px;margin-left:6px;">⚠ 要確認</span>' : ''}`;
+
+  const msgs = document.getElementById('dm-thread-messages');
+  if (!conv.messages || !conv.messages.length) {
+    msgs.innerHTML = '<div class="dm-thread-empty"><div>📭</div>メッセージがありません</div>';
+    return;
+  }
+  msgs.innerHTML = '';
+  // 古い順に並べ替え
+  const sorted = [...conv.messages].sort((a,b) => a.createdAt - b.createdAt);
+  sorted.forEach(msg => {
+    const isFrom1 = msg.fromId === conv.user1Id;
+    const senderName = isFrom1 ? (conv.user1Name||'?') : (conv.user2Name||'?');
+    const senderColor = isFrom1 ? (conv.user1Color||'#4dd0e1') : (conv.user2Color||'#f4a620');
+    const text = msg.text || '📷 画像';
+    const isFlaggedMsg = NG_WORDS.some(w => (msg.text||'').includes(w));
+    const div = document.createElement('div');
+    div.className = 'dm-thread-msg' + (isFlaggedMsg ? ' flagged-msg' : '');
+    div.innerHTML = `
+      <div class="dm-thread-msg-meta">
+        <span style="color:${senderColor};font-weight:600;">${escapeHtml(senderName)}</span>
+        <span>${formatAdminTime(msg.createdAt)}</span>
+        ${isFlaggedMsg ? '<span style="background:rgba(239,83,80,0.2);color:#ef5350;padding:1px 5px;border-radius:4px;font-size:.6rem;">⚠ NG</span>' : ''}
+      </div>
+      <div>${isFlaggedMsg ? highlightNG(text) : escapeHtml(text)}</div>`;
+    msgs.appendChild(div);
+  });
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function formatAdminTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return 'たった今';
+  if (diff < 3600000) return `${Math.floor(diff/60000)}分前`;
+  if (diff < 86400000) return `${Math.floor(diff/3600000)}時間前`;
+  return `${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+
+function showToast(msg, type='info') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+}
+</script>
+</body>
+</html>

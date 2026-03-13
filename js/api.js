@@ -140,6 +140,10 @@ const API = (() => {
     return req('DELETE', `/api/dms/${id}`);
   }
 
+  async function adminListDMs() {
+    return req('GET', '/api/admin/dms');
+  }
+
   // ================================================================
   // 管理者アクション (パスワード再認証付き)
   // ================================================================
@@ -220,7 +224,7 @@ const API = (() => {
     getMyAccount, checkUserId, listAccounts, updateAccount, deleteAccount, adminDeleteAccount, adminSetup,
     listRooms, createRoom, deleteRoom,
     listMessages, postMessage, deleteMessage, adminDeleteMessage,
-    getDMConversations, getDMThread, sendDM, markDMRead, deleteDM,
+    getDMConversations, getDMThread, sendDM, markDMRead, deleteDM, adminListDMs,
     getPublicProfile,
   };
 })();

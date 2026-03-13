@@ -223,6 +223,16 @@
 }
 .message-row.own .message-meta { flex-direction: row-reverse; }
 .message-author { font-size: 0.76rem; font-weight: 600; color: var(--text-secondary); }
+
+/* チャット内ユーザー名（吹き出し上部） */
+.message-username {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+  padding-left: 2px;
+  letter-spacing: 0.02em;
+}
 .message-time   { font-size: 0.75rem; color: var(--text-muted); }
 
 .bubble-wrap {

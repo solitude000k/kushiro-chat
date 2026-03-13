@@ -190,24 +190,14 @@
     </div>
   </section>
 
-  <!-- ---- 管理者パネル（Administratorのみ表示） ---- -->
-  <section class="acc-section" id="admin-panel" style="display:none;border-color:rgba(239,83,80,0.35);">
-    <div class="section-title" style="color:#ef5350;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      管理者パネル
-      <span style="font-size:0.65rem;background:rgba(239,83,80,0.15);color:#ef5350;border:1px solid rgba(239,83,80,0.3);padding:2px 8px;border-radius:10px;margin-left:4px;">Administrator</span>
-    </div>
-    <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:12px;">アカウントの強制削除が可能です。各操作には管理者パスワードの再認証が必要です。</p>
-
-    <div style="position:relative;margin-bottom:12px;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input type="text" id="admin-search" class="form-input" placeholder="ユーザーIDで検索…" style="padding-left:34px;"
-        oninput="renderAdminPanel(this.value)">
-    </div>
-    <div id="admin-account-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-  </section>
+  <!-- ---- 管理者ページ（Administratorのみ表示） ---- -->
+  <div id="admin-page-btn-wrap" style="display:none;margin-bottom:12px;">
+    <a href="admin.html" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;background:rgba(239,83,80,0.10);border:1px solid rgba(239,83,80,0.35);border-radius:var(--radius-lg);color:#ef5350;font-size:0.88rem;font-weight:700;text-decoration:none;transition:all 0.18s;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      管理者ページを開く
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
 
   <!-- ---- アカウント削除 ---- -->
   <section class="acc-section" style="border-color:rgba(239,83,80,0.3);">
@@ -256,18 +246,8 @@
     renderColorPicker();
     await renderHistory();
     if (currentAccount.userId === 'Administrator') {
-      // 管理者パネルのセクションを表示し、認証後にロード
-      document.getElementById('admin-panel').style.display = '';
-      const list = document.getElementById('admin-account-list');
-      list.innerHTML = `
-        <div style="text-align:center;padding:16px;">
-          <button id="admin-panel-load-btn" style="padding:8px 20px;background:rgba(239,83,80,0.15);color:#ef5350;border:1px solid rgba(239,83,80,0.3);border-radius:10px;cursor:pointer;font-size:.82rem;">
-            🔒 管理者認証してパネルを開く
-          </button>
-        </div>`;
-      document.getElementById('admin-panel-load-btn').addEventListener('click', () => {
-        API.adminAction('管理者パネルにアクセスしますか？', () => renderAdminPanel());
-      });
+      // 管理者ページへのボタンを表示
+      document.getElementById('admin-page-btn-wrap').style.display = '';
     }
   }
 
@@ -431,69 +411,6 @@
     Storage.Session.clear();
     window.location.href = 'login.html';
   });
-
-  // ---- 管理者パネル (D1 API版) ----
-  async function renderAdminPanel(query) {
-    document.getElementById('admin-panel').style.display = '';
-    const list = document.getElementById('admin-account-list');
-    const q    = (query || document.getElementById('admin-search')?.value || '').trim().toLowerCase();
-
-    list.innerHTML = '<div style="text-align:center;padding:12px;font-size:.78rem;color:var(--text-muted);">読み込み中...</div>';
-    const res = await API.listAccounts().catch(() => ({ ok: false, error: 'API接続エラー' }));
-    if (!res.ok) {
-      list.innerHTML = `<div style="text-align:center;padding:12px;font-size:.78rem;color:#ef5350;">${escapeHtml(res.error || '読み込みに失敗しました')}</div>`;
-      return;
-    }
-    let accounts = (res.accounts || []).filter(a => a.userId !== 'Administrator');
-    if (q) {
-      accounts = accounts.filter(a =>
-        (a.userId || '').toLowerCase().includes(q) ||
-        (a.nickname || '').toLowerCase().includes(q) ||
-        (a.email || '').toLowerCase().includes(q)
-      );
-    }
-    list.innerHTML = '';
-    if (!accounts.length) {
-      list.innerHTML = '<div style="text-align:center;padding:16px;font-size:.8rem;color:var(--text-muted);">該当するユーザーが見つかりません</div>';
-      return;
-    }
-    accounts.forEach(acc => {
-      const item = document.createElement('div');
-      item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-elevated);border-radius:10px;border:1px solid var(--border);';
-      const color = acc.color || '#f4a620';
-      let avHtml;
-      if (acc.avatarDataUrl) {
-        avHtml = `<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid ${color};flex-shrink:0;"><img src="${acc.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;"></div>`;
-      } else {
-        const init = (acc.nickname||'?').charAt(0).toUpperCase();
-        avHtml = `<div style="width:34px;height:34px;border-radius:50%;background:${color}22;border:2px solid ${color};color:${color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;">${escapeHtml(init)}</div>`;
-      }
-      item.innerHTML = `
-        ${avHtml}
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:.85rem;font-weight:600;color:var(--text-primary);">${escapeHtml(acc.nickname||'')}</div>
-          <div style="font-size:.68rem;color:var(--text-muted);font-family:monospace;">@${escapeHtml(acc.userId||'')} · ${escapeHtml(acc.email)}</div>
-        </div>
-        <button class="admin-del-acc-btn" data-id="${acc.id}" data-name="${escapeHtml(acc.nickname||acc.email)}"
-          style="padding:5px 10px;background:rgba(239,83,80,0.12);color:#ef5350;border:1px solid rgba(239,83,80,0.3);border-radius:8px;cursor:pointer;font-size:.72rem;white-space:nowrap;flex-shrink:0;">
-          削除
-        </button>`;
-      list.appendChild(item);
-    });
-
-    list.querySelectorAll('.admin-del-acc-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const accId   = btn.dataset.id;
-        const accName = btn.dataset.name;
-        API.adminAction(`「${accName}」のアカウントを強制削除しますか？\nそのユーザーのメッセージも全て削除されます。`, async () => {
-          const r = await API.adminDeleteAccount(accId);
-          if (r.ok) { showToast(`「${accName}」を削除しました`, 'success'); await renderAdminPanel(); }
-          else showToast(r.error || '削除に失敗しました', 'error');
-        });
-      });
-    });
-  }
-
 
     function escapeHtml(str) {
     return String(str||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
