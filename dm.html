@@ -277,6 +277,12 @@ async function openConversation(partner) {
   currentPartner = partner;
   await API.markDMRead(partner.id).catch(() => {});
 
+  // 会話を開いたら未読バッジを即時再チェックして更新
+  const allConvs = (await API.getDMConversations().catch(() => ({ conversations: [] }))).conversations || [];
+  const stillUnread = allConvs.some(c => c.unread > 0);
+  const badge = document.getElementById('dm-nav-badge');
+  if (badge) badge.style.display = stillUnread ? 'block' : 'none';
+
   const av = document.getElementById('dm-partner-avatar');
   if (partner.avatarDataUrl) {
     av.innerHTML = `<img src="${partner.avatarDataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;

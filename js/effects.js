@@ -221,6 +221,52 @@
   }
 
   /* ============================================================
+     DM未読バッジ ポーリング（全ページ共通）
+  ============================================================ */
+  function initDMUnreadBadge() {
+    // ログイン済みでないなら何もしない
+    const sess = (() => { try { return JSON.parse(localStorage.getItem('kushiro_session')); } catch { return null; } })();
+    if (!sess?.sessionToken) return;
+
+    const API_BASE = (window.KUSHIRO_API_BASE || '').replace(/\/$/, '');
+    if (!API_BASE) return;
+
+    // nav内のDMリンクにバッジ用spanを動的追加（既にあれば再利用）
+    function ensureBadgeEl() {
+      let el = document.getElementById('dm-nav-badge');
+      if (!el) {
+        const dmLink = document.querySelector('a[href="dm.html"]');
+        if (!dmLink) return null;
+        if (getComputedStyle(dmLink).position === 'static') {
+          dmLink.style.position = 'relative';
+        }
+        el = document.createElement('span');
+        el.id = 'dm-nav-badge';
+        el.style.cssText = 'display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ef5350;border-radius:50%;border:2px solid var(--bg-dark);';
+        dmLink.appendChild(el);
+      }
+      return el;
+    }
+
+    async function checkUnread() {
+      try {
+        const res = await fetch(`${API_BASE}/api/dm/conversations`, {
+          headers: { 'X-Session-Token': sess.sessionToken, 'X-Api-Secret': window.KUSHIRO_API_SECRET || '' },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const hasUnread = (data.conversations || []).some(c => c.unread > 0);
+        const el = ensureBadgeEl();
+        if (el) el.style.display = hasUnread ? 'block' : 'none';
+      } catch {}
+    }
+
+    // 初回即時チェック → 30秒ごとにポーリング
+    checkUnread();
+    setInterval(checkUnread, 30000);
+  }
+
+  /* ============================================================
      初期化
   ============================================================ */
   function init() {
@@ -234,6 +280,7 @@
     initSendButton();
     initNavGlow();
     initMouseGlow();
+    initDMUnreadBadge();
   }
 
   if (document.readyState === 'loading') {
