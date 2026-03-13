@@ -157,9 +157,9 @@
       display: flex; align-items: flex-start; gap: 8px;
     }
     .urgency-badge {
-      flex-shrink: 0; margin-top: 1px;
+      flex-shrink: 0; margin-top: 0;
       font-size: .6rem; padding: 1px 7px; border-radius: 999px;
-      font-weight: 700; letter-spacing: .06em;
+      font-weight: 700; letter-spacing: .06em; white-space: nowrap;
     }
     .urgency-badge.high   { background: rgba(239,83,80,0.15);  color: #ef5350;  border: 1px solid rgba(239,83,80,0.3); }
     .urgency-badge.normal { background: rgba(244,166,32,0.12); color: var(--amber); border: 1px solid rgba(244,166,32,0.25); }
@@ -272,10 +272,15 @@
     .kw-info   { color: var(--cyan); }
     /* アイテムヘッダー行 */
     .news-item-header {
-      display: flex; align-items: flex-start;
-      gap: 7px; flex-wrap: wrap; margin-bottom: 7px;
+      display: flex; align-items: baseline;
+      gap: 7px; flex-wrap: nowrap; margin-bottom: 7px;
     }
-    .news-item-title-text { flex: 1; min-width: 0; font-size: .9rem; font-weight: 600; color: var(--text-primary); line-height: 1.5; }
+    .news-item-title-text {
+      flex: 1; min-width: 0;
+      font-size: .9rem; font-weight: 600; color: var(--text-primary);
+      line-height: 1.5;
+      word-break: break-all;
+    }
     /* 空アイテム */
     .news-item.empty-item { opacity: .45; background: transparent; border-style: dashed; }
     .news-item.empty-item::before { display: none; }
