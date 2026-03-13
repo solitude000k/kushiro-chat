@@ -26,9 +26,11 @@
       content: '';
       position: absolute; inset: 0;
       background:
-        radial-gradient(ellipse 80% 60% at 50% 0%, #0d1a35 0%, #060c18 60%),
-        radial-gradient(circle 300px at 20% 80%, rgba(244,166,32,0.06) 0%, transparent 70%),
-        radial-gradient(circle 200px at 80% 70%, rgba(77,208,225,0.04) 0%, transparent 70%);
+        radial-gradient(ellipse 140% 70% at 50% 0%, #0d1a35 0%, #060c18 70%),
+        radial-gradient(circle 400px at 15% 75%, rgba(244,166,32,0.07) 0%, transparent 70%),
+        radial-gradient(circle 300px at 85% 65%, rgba(77,208,225,0.05) 0%, transparent 70%),
+        radial-gradient(circle 250px at 5% 30%,  rgba(244,166,32,0.04) 0%, transparent 70%),
+        radial-gradient(circle 200px at 95% 20%, rgba(77,208,225,0.03) 0%, transparent 70%);
     }
     /* 港の水面反射ライン */
     .hero-bg::after {
@@ -549,12 +551,35 @@
 function dmAdmin() {
   const sess = Storage.Session.get();
   if (sess) {
-    // ログイン済み → 管理者とのDMページへ（管理者のuserIdパラメータ付き）
     window.location.href = 'dm.html?email=solitude000k%40gmail.com';
   } else {
     window.location.href = 'login.html';
   }
 }
+
+// 星を生成（全幅・全高に散布）
+(function generateStars() {
+  const container = document.getElementById('stars-container');
+  if (!container) return;
+  const count = 120;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.2 + 0.6;
+    s.style.cssText = [
+      `left:${Math.random() * 100}%`,
+      `top:${Math.random() * 80}%`,
+      `width:${size}px`,
+      `height:${size}px`,
+      `--op:${(Math.random() * 0.5 + 0.3).toFixed(2)}`,
+      `--dur:${(Math.random() * 4 + 2).toFixed(1)}s`,
+      `--delay:${(Math.random() * 5).toFixed(1)}s`,
+    ].join(';');
+    frag.appendChild(s);
+  }
+  container.appendChild(frag);
+})();
 </script>
   <script src="js/effects.js"></script>
 </body>
