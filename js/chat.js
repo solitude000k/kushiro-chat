@@ -45,6 +45,10 @@ function initUI() {
   const uname  = document.getElementById('header-username');
   renderAvatar(avatar, currentUser);
   uname.textContent = currentUser.nickname || currentUser.name || '';
+  if (isAdmin) {
+    const adminItem = document.getElementById('admin-page-menu-item');
+    if (adminItem) adminItem.style.display = '';
+  }
 }
 
 // ---- DM未読バッジ ----

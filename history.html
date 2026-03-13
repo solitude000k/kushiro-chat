@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>投稿履歴 ～ 釧チャ</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/account.css">
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5MBEHVJVDS"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5MBEHVJVDS');
+</script>
+<style>
+/* ===== 投稿履歴ページ専用スタイル ===== */
+.hist-page-layout {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* 検索・フィルターバー */
+.hist-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.hist-search-wrap {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
+}
+.hist-search-wrap svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+.hist-search-wrap input {
+  width: 100%; padding: 8px 12px 8px 32px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text-primary);
+  font-size: 0.82rem; box-sizing: border-box;
+}
+.hist-room-select {
+  padding: 8px 12px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-md); color: var(--text-primary);
+  font-size: 0.8rem; cursor: pointer; min-width: 140px;
+}
+.hist-count {
+  font-size: 0.76rem; color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* 投稿カード */
+.hist-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+.hist-card:hover { border-color: var(--border-amber); }
+.hist-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.hist-room-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: var(--amber-subtle);
+  border: 1px solid rgba(244,166,32,0.3);
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--amber);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hist-room-badge:hover { background: rgba(244,166,32,0.2); }
+.hist-date {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+.hist-card-body {
+  font-size: 0.84rem;
+  color: var(--text-primary);
+  line-height: 1.7;
+  word-break: break-word;
+}
+.hist-card-body img {
+  max-width: 200px;
+  max-height: 160px;
+  border-radius: var(--radius-sm);
+  margin-top: 6px;
+  object-fit: cover;
+}
+.hist-img-thumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ページネーション */
+.hist-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.hist-page-btn {
+  padding: 6px 12px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text-secondary);
+  font-size: 0.78rem; cursor: pointer; transition: all 0.15s;
+}
+.hist-page-btn:hover { border-color: var(--border-amber); color: var(--amber); }
+.hist-page-btn.active {
+  background: var(--amber-subtle); border-color: var(--amber);
+  color: var(--amber); font-weight: 700;
+}
+.hist-page-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* 空状態 */
+.hist-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+.hist-empty span { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+/* ローディング */
+.hist-loading {
+  text-align: center; padding: 48px 20px;
+  color: var(--text-muted); font-size: 0.82rem;
+}
+</style>
+</head>
+<body>
+<div class="night-bg"></div>
+
+<!-- ===== ヘッダー ===== -->
+<header class="acc-header">
+  <a href="account.html" class="acc-back">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    アカウント管理に戻る
+  </a>
+  <div class="acc-header-title">投稿履歴</div>
+  <div style="width:80px;"></div><!-- spacer -->
+</header>
+
+<!-- ===== メイン ===== -->
+<div class="hist-page-layout">
+
+  <section class="acc-section">
+    <div class="section-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      投稿履歴
+      <span class="badge badge-amber" id="hist-total-badge">読み込み中…</span>
+    </div>
+
+    <!-- ツールバー -->
+    <div class="hist-toolbar" id="hist-toolbar" style="display:none;">
+      <div class="hist-search-wrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="hist-search" placeholder="投稿内容で検索…" oninput="applyFilters()">
+      </div>
+      <select class="hist-room-select" id="hist-room-filter" onchange="applyFilters()">
+        <option value="">すべての掲示板</option>
+      </select>
+      <span class="hist-count" id="hist-filter-count"></span>
+    </div>
+
+    <!-- リスト -->
+    <div id="hist-list">
+      <div class="hist-loading">
+        <div style="font-size:1.5rem;margin-bottom:8px;">⏳</div>
+        投稿履歴を読み込み中…
+      </div>
+    </div>
+
+    <!-- ページネーション -->
+    <div class="hist-pagination" id="hist-pagination"></div>
+  </section>
+
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/api.js"></script>
+<script>
+const PER_PAGE = 20;
+let currentPage = 1;
+let allMsgs     = [];
+let filteredMsgs = [];
+let roomMap     = {};
+
+// ===== 初期化 =====
+(async function init() {
+  const sess = Storage.Session.get();
+  if (!sess) { window.location.href = 'login.html'; return; }
+
+  const [roomsRes, ...msgArrays] = await Promise.all([
+    API.listRooms().catch(() => ({ rooms: [] })),
+  ]).then(async ([rr]) => {
+    const rooms = rr.rooms || [];
+    roomMap = Object.fromEntries(rooms.map(r => [r.id, r]));
+    // 各掲示板のメッセージを並列取得
+    const arrays = await Promise.all(rooms.map(r => API.listMessages(r.id).catch(() => ({ messages: [] }))));
+    return [rr, ...arrays];
+  });
+
+  allMsgs = msgArrays.flat().flatMap(r => (r.messages || []).filter(m => m.userId === sess.id));
+  allMsgs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // 掲示板フィルター選択肢を構築
+  const usedRoomIds = [...new Set(allMsgs.map(m => m.roomId))];
+  const sel = document.getElementById('hist-room-filter');
+  usedRoomIds.forEach(rid => {
+    const r = roomMap[rid];
+    if (!r) return;
+    const opt = document.createElement('option');
+    opt.value = rid;
+    opt.textContent = (r.icon || '💬') + ' ' + r.name;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('hist-total-badge').textContent = allMsgs.length + '件';
+  document.getElementById('hist-toolbar').style.display = allMsgs.length ? 'flex' : 'none';
+
+  applyFilters();
+})();
+
+// ===== フィルター適用 =====
+function applyFilters() {
+  const q      = document.getElementById('hist-search').value.trim().toLowerCase();
+  const roomId = document.getElementById('hist-room-filter').value;
+
+  filteredMsgs = allMsgs.filter(m => {
+    if (roomId && m.roomId !== roomId) return false;
+    if (q && !(m.text || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('hist-filter-count').textContent =
+    filteredMsgs.length !== allMsgs.length ? `${filteredMsgs.length}件一致` : '';
+  currentPage = 1;
+  renderPage();
+}
+
+// ===== ページ描画 =====
+function renderPage() {
+  const list   = document.getElementById('hist-list');
+  const paging = document.getElementById('hist-pagination');
+
+  if (!filteredMsgs.length) {
+    list.innerHTML = '<div class="hist-empty"><span>📭</span>該当する投稿がありません</div>';
+    paging.innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.ceil(filteredMsgs.length / PER_PAGE);
+  const start = (currentPage - 1) * PER_PAGE;
+  const slice = filteredMsgs.slice(start, start + PER_PAGE);
+
+  list.innerHTML = '';
+  slice.forEach(msg => {
+    const room = roomMap[msg.roomId];
+    const d    = new Date(msg.createdAt);
+    const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const roomLabel = room ? (room.icon || '💬') + ' ' + room.name : '削除済み掲示板';
+    const card = document.createElement('div');
+    card.className = 'hist-card';
+    card.innerHTML = `
+      <div class="hist-card-header">
+        <span class="hist-room-badge" onclick="jumpToRoom('${msg.roomId}')">
+          ${escapeHtml(roomLabel)}
+        </span>
+        <span class="hist-date">${dateStr}</span>
+      </div>
+      <div class="hist-card-body">
+        ${msg.text ? escapeHtml(msg.text).replace(/\n/g,'<br>') : ''}
+        ${msg.imageData ? `<div class="hist-img-thumb">📷 画像あり</div>` : ''}
+      </div>`;
+    list.appendChild(card);
+  });
+
+  // ページネーション
+  paging.innerHTML = '';
+  if (totalPages <= 1) return;
+
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'hist-page-btn';
+  prevBtn.textContent = '← 前へ';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => { currentPage--; renderPage(); scrollToTop(); };
+  paging.appendChild(prevBtn);
+
+  // ページ番号ボタン（最大7つ表示）
+  const range = pageRange(currentPage, totalPages);
+  range.forEach(p => {
+    if (p === '...') {
+      const ellipsis = document.createElement('span');
+      ellipsis.textContent = '…';
+      ellipsis.style.cssText = 'padding:0 4px;color:var(--text-muted);font-size:.78rem;';
+      paging.appendChild(ellipsis);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'hist-page-btn' + (p === currentPage ? ' active' : '');
+      btn.textContent = p;
+      btn.onclick = () => { currentPage = p; renderPage(); scrollToTop(); };
+      paging.appendChild(btn);
+    }
+  });
+
+  const nextBtn = document.createElement('button');
+  nextBtn.className = 'hist-page-btn';
+  nextBtn.textContent = '次へ →';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => { currentPage++; renderPage(); scrollToTop(); };
+  paging.appendChild(nextBtn);
+}
+
+function pageRange(current, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  const pages = [1];
+  if (current > 3) pages.push('...');
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+  if (current < total - 2) pages.push('...');
+  pages.push(total);
+  return pages;
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function jumpToRoom(roomId) {
+  window.location.href = 'chat.html?room=' + encodeURIComponent(roomId);
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+
+function showToast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+}
+</script>
+</body>
+</html>
