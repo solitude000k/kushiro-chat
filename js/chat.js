@@ -199,16 +199,20 @@ async function refreshMessages() {
   if (!res.ok && !res.messages) throw new Error('API error'); // バックオフ用にエラーを通知
   const messages = res.messages || [];
   const container = document.getElementById('messages-container');
-  const scrollEl  = document.getElementById('messages-container');
-  const atBottom  = scrollEl.scrollHeight - scrollEl.scrollTop <= scrollEl.clientHeight + 80;
+  const scrollEl  = container;
 
   // ルーム切替時など：コンテナが別ルームのメッセージを持っている場合は全クリア
-  const currentRoomId = container.dataset.roomId;
-  if (currentRoomId !== currentRoom.id) {
+  const isFirstRender = container.dataset.roomId !== currentRoom.id;
+  if (isFirstRender) {
     container.innerHTML = '';
     container.dataset.roomId = currentRoom.id;
     renderedMsgIds.clear();
   }
+
+  // スクロール位置の判定（追加前に取得）
+  // 初回レンダリングは必ず最下部へ。それ以降は 120px 以内なら追従
+  const atBottom = isFirstRender ||
+    (scrollEl.scrollHeight - scrollEl.scrollTop <= scrollEl.clientHeight + 120);
 
   if (!messages.length) {
     if (!container.querySelector('.no-messages')) {
@@ -326,7 +330,24 @@ async function refreshMessages() {
     lastUserId = msg.userId;
   });
 
-  if (atBottom) scrollEl.scrollTop = scrollEl.scrollHeight;
+  if (atBottom) {
+    // DOM描画・アニメーション完了後に確実にスクロール
+    requestAnimationFrame(() => {
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+      // 初回はもう一度（画像などの遅延ロード対応）
+      if (isFirstRender) setTimeout(() => { scrollEl.scrollTop = scrollEl.scrollHeight; }, 150);
+    });
+    // 「↓最新」ボタンを非表示
+    const jumpBtn = document.getElementById('jump-to-latest');
+    if (jumpBtn) jumpBtn.classList.remove('visible');
+  } else {
+    // 画面外に新着がある場合「↓最新」ボタンを表示
+    const hasNew = messages.some(m => !renderedMsgIds.has(m.id) || false);
+    if (hasNew) {
+      const jumpBtn = document.getElementById('jump-to-latest');
+      if (jumpBtn) jumpBtn.classList.add('visible');
+    }
+  }
 }
 
 // ---- メッセージ送信 ----
@@ -352,6 +373,9 @@ async function sendMessage() {
   const res = await API.postMessage(msg);
   if (!res.ok) { showToast(res.error || '送信に失敗しました', 'error'); return; }
   await refreshMessages();
+  // 自分の送信後は必ず最下部へ
+  const sc = document.getElementById('messages-container');
+  requestAnimationFrame(() => { sc.scrollTop = sc.scrollHeight; });
   await updateCategoryFilters();
 }
 
@@ -548,6 +572,25 @@ function setupEventListeners() {
       btn.classList.add('selected');
     });
   });
+
+  // 「↓最新を見る」ボタン
+  const jumpBtn = document.getElementById('jump-to-latest');
+  if (jumpBtn) {
+    jumpBtn.addEventListener('click', () => {
+      const sc = document.getElementById('messages-container');
+      sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' });
+      jumpBtn.classList.remove('visible');
+    });
+  }
+  // スクロール位置を監視してボタン表示/非表示
+  const msgContainer = document.getElementById('messages-container');
+  if (msgContainer) {
+    msgContainer.addEventListener('scroll', () => {
+      if (!jumpBtn) return;
+      const atBottom = msgContainer.scrollHeight - msgContainer.scrollTop <= msgContainer.clientHeight + 120;
+      if (atBottom) jumpBtn.classList.remove('visible');
+    }, { passive: true });
+  }
 }
 
 // ---- プロフィールモーダル ----

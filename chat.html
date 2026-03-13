@@ -175,7 +175,14 @@
       <div class="typing-indicator" id="typing-indicator" style="opacity:0;"></div>
 
       <!-- メッセージ一覧 -->
-      <div class="messages-container" id="messages-container"></div>
+      <div style="position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column;">
+        <div class="messages-container" id="messages-container"></div>
+        <!-- ↓最新ボタン -->
+        <button id="jump-to-latest" title="最新メッセージへ">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          最新を見る
+        </button>
+      </div>
 
       <!-- 入力エリア -->
       <div class="input-area">
