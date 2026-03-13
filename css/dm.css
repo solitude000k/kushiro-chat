@@ -386,8 +386,10 @@
     height: 52px;
     z-index: 200;
   }
+  /* fixed ヘッダーはフローから外れるので padding-top のみで補う */
   .dm-layout {
-    padding-top: 52px; /* fixed header 分を確保 */
+    padding-top: 52px;
+    box-sizing: border-box;
   }
   .dm-sidebar {
     position: fixed;

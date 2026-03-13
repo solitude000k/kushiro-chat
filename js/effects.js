@@ -250,7 +250,7 @@
 
     async function checkUnread() {
       try {
-        const res = await fetch(`${API_BASE}/api/dm/conversations`, {
+        const res = await fetch(`${API_BASE}/api/dms/conversations`, {
           headers: { 'X-Session-Token': sess.sessionToken, 'X-Api-Secret': window.KUSHIRO_API_SECRET || '' },
         });
         if (!res.ok) return;
