@@ -24,6 +24,8 @@
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 12px rgba(0,0,0,0.4);
   z-index: 100;
+  position: sticky;
+  top: 0;
 }
 .header-brand {
   display: flex;
@@ -747,9 +749,18 @@
 
 /* ---- スマホ ---- */
 @media (max-width: 600px) {
-  /* ヘッダー */
-  .app-header       { padding: 0 10px; height: 52px; }
-  .app-layout       { grid-template-rows: 52px 1fr; }
+  /* ヘッダー: モバイルでは fixed 固定 */
+  .app-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    padding: 0 10px;
+    z-index: 200;
+  }
+  .app-layout {
+    grid-template-rows: 52px 1fr;
+    padding-top: 52px; /* fixed header 分を確保 */
+  }
   .header-brand img { width: 28px; height: 28px; }
   .header-brand-text, .header-brand-sub { display: none; }
   .header-user-name { display: none; }

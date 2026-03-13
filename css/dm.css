@@ -379,8 +379,18 @@
 
 /* ---- モバイル対応 ---- */
 @media (max-width: 640px) {
+  /* ヘッダー fixed 固定 */
+  .app-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    z-index: 200;
+  }
+  .dm-layout {
+    padding-top: 52px; /* fixed header 分を確保 */
+  }
   .dm-sidebar {
-    position: absolute;
+    position: fixed;
     left: 0; top: 52px; bottom: 0;
     z-index: 50;
     width: 100%;

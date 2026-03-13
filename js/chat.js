@@ -172,7 +172,7 @@ async function selectRoom(roomId) {
   await refreshMessages();
 }
 
-// ---- メッセージ表示 ----
+// ---- メッセージ表示（差分追記方式・チカチカ防止）----
 async function refreshMessages() {
   if (!currentRoom) return;
   const res      = await API.listMessages(currentRoom.id);
@@ -181,30 +181,44 @@ async function refreshMessages() {
   const scrollEl  = document.getElementById('messages-container');
   const atBottom  = scrollEl.scrollHeight - scrollEl.scrollTop <= scrollEl.clientHeight + 80;
 
-  container.innerHTML = '';
-  if (!messages.length) {
-    container.innerHTML = `<div class="no-messages"><div class="no-messages-icon">${currentRoom.icon || '💬'}</div><p>まだメッセージはありません<br><span>最初のメッセージを送ってみましょう</span></p></div>`;
+  // ルーム切替時など：コンテナが別ルームのメッセージを持っている場合は全クリア
+  const currentRoomId = container.dataset.roomId;
+  if (currentRoomId !== currentRoom.id) {
+    container.innerHTML = '';
+    container.dataset.roomId = currentRoom.id;
+    renderedMsgIds.clear();
   }
 
-  let lastUserId = null;
-  messages.forEach(msg => {
-    const isOwn = msg.userId === currentUser.id;
-    const row   = document.createElement('div');
+  if (!messages.length) {
+    if (!container.querySelector('.no-messages')) {
+      container.innerHTML = `<div class="no-messages"><div class="no-messages-icon">${currentRoom.icon || '💬'}</div><p>まだメッセージはありません<br><span>最初のメッセージを送ってみましょう</span></p></div>`;
+    }
+    return;
+  }
 
+  // no-messages表示中なら消す
+  const noMsg = container.querySelector('.no-messages');
+  if (noMsg) noMsg.remove();
+
+  // 削除されたメッセージをDOMから除去
+  const serverIds = new Set(messages.map(m => m.id));
+  container.querySelectorAll('[data-msg-id]').forEach(el => {
+    if (!serverIds.has(el.dataset.msgId)) {
+      el.remove();
+      renderedMsgIds.delete(el.dataset.msgId);
+    }
+  });
+
+  // 新着メッセージのみ追記
+  function buildRow(msg, showAvatar) {
+    const isOwn   = msg.userId === currentUser.id;
     const date    = new Date(msg.createdAt);
     const timeStr = String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
-
+    const row     = document.createElement('div');
     row.className = `message-row${isOwn ? ' own' : ''}`;
     row.dataset.msgId = msg.id;
+    row.classList.add('msg-animate');
 
-    // 初回表示のみアニメーション付与
-    if (!renderedMsgIds.has(msg.id)) {
-      row.classList.add('msg-animate');
-    }
-    renderedMsgIds.add(msg.id);
-
-    // アバター(直前と同じユーザーなら省略)
-    const showAvatar = msg.userId !== lastUserId;
     let avHtml = '';
     if (!isOwn && showAvatar) {
       const color = msg.userColor || '#f4a620';
@@ -274,8 +288,20 @@ async function refreshMessages() {
     }
 
     if (!isOwn) row.insertBefore(document.createRange().createContextualFragment(avHtml || '<div class="avatar avatar-sm" style="visibility:hidden;"></div>'), row.firstChild);
+    return row;
+  }
 
-    container.appendChild(row);
+  // 既存DOMにないメッセージだけ末尾に追加
+  let lastUserId = null;
+  messages.forEach((msg, idx) => {
+    // 直前のメッセージのuserIdを追跡（アバター省略判定用）
+    const prevMsg = idx > 0 ? messages[idx - 1] : null;
+    const showAvatar = !prevMsg || prevMsg.userId !== msg.userId;
+
+    if (!renderedMsgIds.has(msg.id)) {
+      renderedMsgIds.add(msg.id);
+      container.appendChild(buildRow(msg, showAvatar));
+    }
     lastUserId = msg.userId;
   });
 
@@ -487,6 +513,7 @@ function setupEventListeners() {
 
   // 掲示板作成モーダル
   document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModal);
+  document.getElementById('new-room-btn-center')?.addEventListener('click', openNewRoomModal);
   document.getElementById('new-room-cancel')?.addEventListener('click', closeNewRoomModal);
   document.getElementById('new-room-submit')?.addEventListener('click', createRoom);
   // アイコン選択
