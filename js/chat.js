@@ -532,8 +532,11 @@ function setupEventListeners() {
     window.location.href = 'login.html';
   });
 
-  // 掲示板作成モーダル（モバイルではサイドバーを先に閉じる）
-  function openNewRoomModalMobile() { closeSidebar(); openNewRoomModal(); }
+  // 掲示板作成モーダル（モバイルではサイドバーを先に閉じてからモーダルを開く）
+  function openNewRoomModalMobile() {
+    closeSidebar();
+    setTimeout(openNewRoomModal, 50); // サイドバーの閉じアニメーション後に開く
+  }
   document.getElementById('new-room-btn')?.addEventListener('click', openNewRoomModalMobile);
   document.getElementById('new-room-btn-center')?.addEventListener('click', openNewRoomModal);
   document.getElementById('new-room-cancel')?.addEventListener('click', closeNewRoomModal);
