@@ -459,7 +459,7 @@
       }
       // セッション保存
       Storage.Session.set({ ...data.account, sessionToken: data.sessionToken });
-      window.location.href = 'chat.html';
+      window.location.href = 'news.html';
     } catch (e) {
       showField('login-pw-err', 'サーバーに接続できません');
       setLoading('login-btn', false);
@@ -621,7 +621,7 @@
 
   // セッション確認
   const _sess = Storage.Session.get();
-  if (_sess && _sess.sessionToken) window.location.href = 'chat.html';
+  if (_sess && _sess.sessionToken) window.location.href = 'news.html';
 </script>
   <script src="js/effects.js"></script>
 </body>

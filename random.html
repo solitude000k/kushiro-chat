@@ -534,12 +534,13 @@
       <span class="ad-slot-label">advertisement</span>
       <!-- GoogleAdSense01 -->
       <ins class="adsbygoogle"
+           id="random-ad-slot"
            style="display:block"
            data-ad-client="ca-pub-9350505956759257"
            data-ad-slot="2112065815"
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      <!-- adsbygoogle.push は openAdModal() 内でモーダル表示後に呼ぶ -->
     </div>
 
     <!-- カウントダウン -->
@@ -677,6 +678,14 @@ function openAdModal() {
   adBar.style.width = '100%';
   document.getElementById('ad-countdown-text').innerHTML =
     '<span id="ad-sec">5</span>秒後にボタンが解放されます';
+
+  // モーダルが表示された後に AdSense を初期化（幅が確定してから）
+  const adSlot = document.getElementById('random-ad-slot');
+  if (adSlot && !adSlot.dataset.adsbygoogleStatus) {
+    requestAnimationFrame(() => {
+      try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) {}
+    });
+  }
 
   // カウントダウン開始（5秒）
   let remaining = 5;
