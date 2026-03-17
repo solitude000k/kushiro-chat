@@ -3,9 +3,10 @@
 <head>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>投稿履歴 ～ 釧チャ</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <link rel="stylesheet" href="css/account.css">
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
@@ -154,6 +155,27 @@
 .hist-loading {
   text-align: center; padding: 48px 20px;
   color: var(--text-muted); font-size: 0.82rem;
+}
+
+/* ===== 投稿履歴 スマホ最適化 ===== */
+@media (max-width: 600px) {
+  .hist-page-layout {
+    padding: calc(env(safe-area-inset-top,0px) + 64px) 12px
+             calc(env(safe-area-inset-bottom,0px) + 20px);
+  }
+  .hist-toolbar     { gap: 8px; }
+  .hist-search-wrap { min-width: 0; }
+  .hist-search-wrap input { font-size: 16px !important; }
+  .hist-room-select { font-size: 16px !important; min-width: 0; flex: 1; }
+  .hist-card        { padding: 12px 12px; }
+  .hist-card-header { gap: 6px; }
+  .hist-room-badge  { font-size: 0.68rem; padding: 2px 8px; }
+  .hist-date        { font-size: 0.64rem; }
+}
+@media (max-width: 360px) {
+  .hist-toolbar     { flex-direction: column; }
+  .hist-search-wrap { width: 100%; }
+  .hist-room-select { width: 100%; }
 }
 </style>
 </head>

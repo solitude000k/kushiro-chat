@@ -3,9 +3,10 @@
 <head>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>管理者ページ ～ 釧チャ</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <link rel="stylesheet" href="css/account.css">
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
@@ -273,6 +274,22 @@
 @media (max-width: 700px) {
   .dm-monitor-grid { grid-template-columns: 1fr; height: auto; }
   .dm-conv-panel { max-height: 300px; }
+}
+
+/* ===== 管理者 スマホ最適化 ===== */
+@media (max-width: 600px) {
+  body { padding-top: calc(env(safe-area-inset-top,0px) + 52px); }
+  .admin-header { height: calc(52px + env(safe-area-inset-top,0px)); padding: env(safe-area-inset-top,0px) 12px 0; }
+  .admin-nav    { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .admin-nav::-webkit-scrollbar { display: none; }
+  .admin-nav-btn { white-space: nowrap; font-size: 0.78rem; padding: 6px 10px; min-height: 38px; }
+  .admin-section { padding: 14px 12px; border-radius: var(--radius-lg); }
+  .admin-table   { font-size: 0.78rem; }
+  .admin-table th, .admin-table td { padding: 8px 8px; }
+  input, select, textarea { font-size: 16px !important; }
+}
+@media (max-width: 360px) {
+  .admin-nav-btn { font-size: 0.72rem; padding: 5px 8px; }
 }
 </style>
 </head>

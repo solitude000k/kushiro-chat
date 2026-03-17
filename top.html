@@ -2,10 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>釧チャ ～ 釧路コミュニティチャット</title>
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <link rel="stylesheet" href="css/chat.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -271,6 +272,21 @@
       line-height: 2;
     }
     .top-footer a { color: var(--amber); text-decoration: none; }
+
+    /* ===== top.html スマホ最適化 ===== */
+    @media (max-width: 600px) {
+      body { padding-top: calc(env(safe-area-inset-top,0px) + 52px); }
+      .top-header { padding-top: env(safe-area-inset-top,0px); height: calc(52px + env(safe-area-inset-top,0px)); }
+      .top-hero   { padding: 48px 14px 36px; min-height: 80dvh; }
+      .top-hero h1 { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+      .hero-btns  { flex-direction: column; align-items: center; gap: 10px; }
+      .hero-btns .btn { width: 100%; max-width: 280px; justify-content: center; min-height: 46px; }
+      .features-row   { grid-template-columns: 1fr; gap: 12px; padding: 0 14px 40px; }
+    }
+    @media (max-width: 360px) {
+      .top-hero h1 { font-size: 1.5rem; }
+      .hero-btns .btn { font-size: 0.85rem; }
+    }
   </style>
 </head>
 <body>

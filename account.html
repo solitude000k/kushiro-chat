@@ -3,10 +3,46 @@
 <head>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>アカウント管理 ～ 釧チャ</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <link rel="stylesheet" href="css/account.css">
+
+<style>
+/* ===== アカウント スマホ最適化 ===== */
+@media (max-width: 600px) {
+  /* ヘッダー */
+  .acc-header  { padding: 0 12px; height: calc(54px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); }
+  .acc-back    { font-size: 0.82rem; }
+  .acc-header-title { font-size: 0.9rem; }
+
+  /* メイン */
+  .acc-main    { padding: 14px 12px calc(var(--bottom-nav-total, 72px) + 16px); gap: 14px; }
+  .acc-section { padding: 18px 14px; border-radius: var(--radius-lg); }
+  .section-title { font-size: 0.92rem; margin-bottom: 14px; padding-bottom: 10px; }
+
+  /* プロフィールカード */
+  .profile-card { gap: 16px; }
+  .avatar-lg-wrap, .avatar-lg-wrap .avatar { width: 76px; height: 76px; }
+  .avatar-edit-btn { width: 26px; height: 26px; }
+  .profile-fields { gap: 12px; }
+
+  /* パスワードフォーム */
+  .pw-change-form { max-width: 100%; }
+
+  /* 履歴リスト */
+  .history-list   { max-height: 320px; }
+  .history-item   { padding: 10px 12px; }
+  .history-text   { font-size: 0.84rem; }
+  .history-room   { font-size: 0.72rem; }
+}
+@media (max-width: 360px) {
+  .acc-main    { padding: 10px 10px calc(var(--bottom-nav-total, 72px) + 12px); }
+  .acc-section { padding: 14px 12px; }
+  .avatar-lg-wrap, .avatar-lg-wrap .avatar { width: 68px; height: 68px; }
+}
+</style>
 
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>

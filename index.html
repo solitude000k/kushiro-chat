@@ -2,7 +2,7 @@
 <html lang="ja" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <!-- ===== Primary SEO ===== -->
   <title>釧チャ｜釧路市・釧路町の地域コミュニティ・掲示板・チャット・ニュース</title>
@@ -91,6 +91,7 @@
 
   <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <link rel="stylesheet" href="css/chat.css">
   <style>
     body { overflow-x: hidden; }
@@ -315,6 +316,51 @@
       .header-brand img  { width: 28px; height: 28px; }
       .header-auth { gap: 4px; }
     }
+
+    /* ===== トップページ スマホ最適化 ===== */
+    @media (max-width: 600px) {
+      /* ヒーロー: 固定ヘッダー + ボトムナビ分の余白 */
+      .hero {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 56px);
+        padding-bottom: calc(var(--bottom-nav-total, 72px) + 20px);
+        min-height: 100dvh;
+      }
+      .hero-badge      { padding: 4px 12px; font-size: 0.72rem; margin-bottom: 20px; }
+      .hero-title      { font-size: clamp(1.9rem, 7vw, 2.8rem) !important; line-height: 1.25; }
+      .hero-sub        { font-size: 0.9rem; letter-spacing: 0.04em; }
+      .hero-desc       { font-size: 0.78rem; margin-bottom: 28px; padding: 0 4px; }
+      .hero-actions    { gap: 10px; padding: 0 4px; }
+      .hero-actions .btn { flex: 1; justify-content: center; max-width: 200px; }
+
+      /* フィーチャーグリッド: 1列に */
+      .features        { padding: 48px 14px; }
+      .features-grid   { grid-template-columns: 1fr; gap: 12px; }
+      .feature-card    { padding: 20px 18px; border-radius: 14px; }
+      .feature-icon    { font-size: 1.6rem; margin-bottom: 10px; }
+      .feature-title   { font-size: 1rem; }
+      .feature-desc    { font-size: 0.82rem; }
+
+      /* 統計バー */
+      .stats-bar       { padding: 24px 14px; }
+      .stats-inner     { gap: 32px; }
+      .stat-value      { font-size: 1.8rem; }
+      .stat-label      { font-size: 0.7rem; }
+
+      /* CTA */
+      .cta-section     { padding: 48px 14px calc(var(--bottom-nav-total, 72px) + 20px); }
+      .cta-title       { font-size: 1.3rem; margin-bottom: 12px; }
+      .cta-desc        { font-size: 0.82rem; margin-bottom: 24px; }
+
+      /* フッター */
+      .top-footer      { padding: 32px 14px calc(var(--bottom-nav-total, 72px) + 20px); }
+    }
+
+    @media (max-width: 360px) {
+      .hero-title   { font-size: 1.7rem !important; }
+      .hero-actions .btn { font-size: 0.82rem; padding: 10px 14px; }
+      .features-grid { gap: 10px; }
+      .feature-card  { padding: 16px 14px; }
+    }
 </style>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -337,7 +383,7 @@
   gtag('config', 'G-5MBEHVJVDS');
 </script>
 </head>
-<body>
+<body class="has-bottom-nav">
 
 <!-- ===== ヘッダー ===== -->
 <header class="app-header" style="position:fixed;top:0;left:0;right:0;z-index:100;">
@@ -691,5 +737,29 @@ function dmAdmin() {
 })();
 </script>
   <script src="js/effects.js"></script>
+
+<!-- モバイルボトムナビゲーション -->
+<nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+  <a href="index.html" class="mobile-nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>ホーム</span>
+  </a>
+  <a href="news.html" class="mobile-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>ニュース</span>
+  </a>
+  <a href="chat.html" class="mobile-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>掲示板</span>
+  </a>
+  <a href="dm.html" class="mobile-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></svg>
+    <span>DM</span> <span class="mobile-nav-badge" id="bnav-dm-badge" style="display:none;"></span>
+  </a>
+  <a href="random.html" class="mobile-nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+    <span>ランダム</span>
+  </a>
+</nav>
 </body>
 </html>

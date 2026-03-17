@@ -1,0 +1,747 @@
+/* ================================================================
+   mobile.css - Android / スマートフォンアプリ最適化
+   安全領域・タッチ・ボトムナビ・ダイナミックビューポート・極小画面
+================================================================ */
+
+/* ================================================================
+   1. CSS 変数 - 安全領域・レイアウト定数
+================================================================ */
+:root {
+  --safe-top:         env(safe-area-inset-top,    0px);
+  --safe-bottom:      env(safe-area-inset-bottom, 0px);
+  --safe-left:        env(safe-area-inset-left,   0px);
+  --safe-right:       env(safe-area-inset-right,  0px);
+  --bottom-nav-h:     56px;   /* ボトムナビ高さ */
+  --bottom-nav-total: calc(var(--bottom-nav-h) + var(--safe-bottom));
+}
+
+/* ================================================================
+   2. グローバルタッチ最適化
+================================================================ */
+
+/* タップ時のハイライト除去（全要素） */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* UI操作要素のテキスト選択禁止 */
+.btn, .btn-icon, .btn-primary, .btn-secondary, .btn-ghost,
+.nav-item, .nav-link, .category-btn, .auth-tab, .hist-filter-btn,
+.room-item, .room-delete-btn, .send-btn, .dm-send-btn,
+.msg-delete-btn, .dm-delete-btn, .icon-option,
+.mobile-bottom-nav, .mobile-nav-item,
+.sidebar-overlay, .auth-icon-btn {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* タッチ操作の最適化 */
+.messages-container,
+.room-list,
+.dm-conv-list,
+.dm-messages,
+.acc-main {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* 横スクロール防止（最外枠） */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* ================================================================
+   3. ボトムナビゲーションバー（アプリタブバー）
+================================================================ */
+
+.mobile-bottom-nav {
+  display: none; /* PC ではデフォルト非表示 */
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--bottom-nav-total);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    z-index: 300;
+    align-items: stretch;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    /* アニメーションライン */
+    background-image: linear-gradient(
+      to bottom,
+      rgba(77, 208, 225, 0.08) 0px,
+      transparent 1px
+    );
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding-bottom: var(--safe-bottom);
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.62rem;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    transition: color 0.15s ease;
+    position: relative;
+    min-height: 44px;
+  }
+
+  .mobile-nav-item svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 1.8;
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-nav-item:active svg {
+    transform: scale(0.88);
+  }
+
+  .mobile-nav-item.active {
+    color: var(--amber);
+  }
+
+  .mobile-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: var(--amber);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 0 8px rgba(244, 166, 32, 0.6);
+  }
+
+  .mobile-nav-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 16px);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--amber);
+    color: var(--bg-deep);
+    font-size: 0.58rem;
+    font-weight: 700;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* ボトムナビがある画面のコンテンツ下余白 */
+  .has-bottom-nav {
+    padding-bottom: var(--bottom-nav-total) !important;
+  }
+
+  /* ボトムナビ用スクロール領域調整 */
+  body.has-bottom-nav {
+    padding-bottom: 0;
+  }
+}
+
+/* ================================================================
+   4. ヘッダー安全領域（ノッチ・ステータスバー）
+================================================================ */
+
+@media (max-width: 768px) {
+  /* ページ系ヘッダー（fixed） */
+  header.app-header[style*="position:fixed"],
+  header.app-header[style*="position: fixed"],
+  .acc-header {
+    padding-top: var(--safe-top);
+    height: calc(52px + var(--safe-top));
+  }
+
+  /* チャットヘッダー */
+  .app-header {
+    padding-top: var(--safe-top);
+  }
+}
+
+/* ================================================================
+   5. chat.css 補完 - 動的ビューポート・入力エリア安全領域
+================================================================ */
+
+@media (max-width: 768px) {
+  /* 動的ビューポート（仮想キーボード連動）*/
+  .app-layout {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+
+  html.chat-page,
+  html.chat-page body {
+    height: 100dvh;
+  }
+
+  /* チャット入力エリア：ホームバー分の余白 */
+  .input-area {
+    padding-bottom: calc(16px + var(--safe-bottom));
+  }
+
+  /* チャット入力欄フォントサイズ（iOSズーム防止） */
+  .message-textarea {
+    font-size: 16px !important;
+  }
+
+  /* メッセージエリア：スクロール慣性 */
+  .messages-container {
+    overscroll-behavior-y: contain;
+  }
+
+  /* サイドバー：ノッチ対応 */
+  .sidebar {
+    padding-left: var(--safe-left);
+  }
+
+  /* ↓最新ボタン：位置調整 */
+  #jump-to-latest {
+    bottom: calc(16px + var(--safe-bottom));
+  }
+}
+
+/* ================================================================
+   6. dm.css 補完 - DM 入力エリア安全領域
+================================================================ */
+
+@media (max-width: 768px) {
+  /* DM レイアウト dvh */
+  .dm-layout {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  /* DM 入力エリア：ホームバー */
+  .dm-input-area {
+    padding-bottom: calc(12px + var(--safe-bottom));
+  }
+
+  /* DM textarea フォントサイズ */
+  .dm-textarea {
+    font-size: 16px !important;
+  }
+
+  /* DM サイドバー高さ調整 */
+  .dm-sidebar {
+    padding-bottom: var(--safe-bottom);
+  }
+}
+
+/* ================================================================
+   7. フォーム・入力全般 - iOSズーム防止・タッチ改善
+================================================================ */
+
+@media (max-width: 768px) {
+  /* iOS ズーム防止（全入力要素） */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* 入力欄タッチターゲット最低 44px */
+  .form-input,
+  .form-select,
+  .form-textarea {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  /* ボタン最低タッチターゲット */
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+  }
+
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 送信ボタン */
+  .send-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* ================================================================
+   8. モーダル - 安全領域・スクロール
+================================================================ */
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    align-items: flex-end;  /* 画面下から表示（シート風） */
+    padding: 0;
+  }
+
+  .modal {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    max-height: calc(90dvh - var(--safe-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(24px + var(--safe-bottom)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: translateY(40px) !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+  }
+
+  .modal-overlay.active .modal {
+    transform: translateY(0) !important;
+  }
+
+  /* モーダル内フォームグループ */
+  .modal .form-group + .form-group {
+    margin-top: 12px;
+  }
+
+  /* アイコングリッド：8→6列 */
+  .icon-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* ================================================================
+   9. トースト - 安全領域
+================================================================ */
+
+@media (max-width: 768px) {
+  #toast-container {
+    bottom: calc(12px + var(--safe-bottom));
+    right: 12px;
+    left: 12px;
+  }
+
+  /* ボトムナビがある画面ではさらに上 */
+  body.has-bottom-nav #toast-container {
+    bottom: calc(var(--bottom-nav-total) + 12px);
+  }
+}
+
+/* ================================================================
+   10. ナビゲーション - 極小画面対応
+================================================================ */
+
+@media (max-width: 360px) {
+  /* ヘッダー */
+  .app-header,
+  .acc-header {
+    padding: 0 8px;
+  }
+
+  /* ナビアイテム最小化 */
+  .nav-item {
+    padding: 5px 5px;
+    min-width: 32px;
+  }
+
+  .nav-item svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* ログイン/登録ボタン */
+  .auth-icon-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ================================================================
+   11. ランディングページ・ニュース・ランダム - スクロール補正
+================================================================ */
+
+@media (max-width: 768px) {
+  /* ボトムナビ分の余白 */
+  .news-layout,
+  .page-content,
+  .random-layout,
+  main {
+    padding-bottom: calc(var(--bottom-nav-total) + 16px);
+  }
+
+  /* ヒーローセクション：ステータスバー分調整 */
+  .hero {
+    padding-top: calc(var(--safe-top) + 60px);
+  }
+}
+
+/* ================================================================
+   12. ランダムマッチング - スマホUI最適化
+================================================================ */
+
+@media (max-width: 600px) {
+  /* マッチング画面中央配置 */
+  .random-main {
+    padding: 16px 14px;
+  }
+
+  /* カウントダウン等の大きいテキスト */
+  .random-count {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+}
+
+/* ================================================================
+   13. アカウントページ - スマホUI最適化
+================================================================ */
+
+@media (max-width: 600px) {
+  .acc-section {
+    padding: 18px 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .acc-main {
+    padding: 16px 14px calc(var(--bottom-nav-total) + 24px);
+    gap: 16px;
+  }
+
+  /* カラーピッカー拡大 */
+  .color-swatch-acc {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* タブ横スクロール */
+  .acc-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .acc-tabs::-webkit-scrollbar { display: none; }
+}
+
+/* ================================================================
+   14. 極小画面 (< 360px) 対応
+================================================================ */
+
+@media (max-width: 360px) {
+  /* ベースフォント縮小 */
+  html { font-size: 15px; }
+
+  /* ボタンラベル短縮 */
+  .btn:not(.btn-icon) {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* バブル最大幅 */
+  .bubble-wrap,
+  .dm-bubble-wrap {
+    max-width: 82vw !important;
+  }
+
+  /* メッセージパディング */
+  .message-bubble {
+    padding: 7px 10px;
+    font-size: 0.82rem;
+  }
+
+  /* サイドバーフォント */
+  .room-name { font-size: 0.8rem; }
+  .room-category { font-size: 0.65rem; }
+
+  /* カテゴリフィルターボタン */
+  .category-btn {
+    padding: 3px 8px;
+    font-size: 0.68rem;
+  }
+
+  /* ボトムナビテキスト非表示 */
+  .mobile-nav-item span {
+    display: none;
+  }
+
+  .mobile-nav-item {
+    gap: 0;
+  }
+
+  .mobile-bottom-nav {
+    height: calc(48px + var(--safe-bottom));
+  }
+
+  :root {
+    --bottom-nav-h: 48px;
+  }
+
+  /* チャットヘッダー */
+  .chat-room-name { font-size: 0.9rem; }
+  .chat-room-desc { font-size: 0.68rem; }
+}
+
+/* ================================================================
+   15. ホバーエフェクト無効化（タッチデバイス）
+================================================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* カードホバーリフトなし */
+  .card:hover,
+  .news-item:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* メッセージバブルホバーなし */
+  .message-bubble:hover {
+    box-shadow: none !important;
+  }
+
+  /* ルームアイテムホバー → active に変更 */
+  .room-item:hover {
+    background: transparent;
+  }
+
+  .room-item:active {
+    background: var(--bg-elevated);
+  }
+
+  /* DM会話アイテム */
+  .dm-conv-item:hover {
+    background: transparent;
+  }
+
+  .dm-conv-item:active {
+    background: var(--bg-elevated);
+  }
+
+  /* 削除ボタン：hover で表示ではなく常時表示（スマホ） */
+  .msg-delete-btn,
+  .dm-delete-btn {
+    opacity: 0.5;
+  }
+
+  /* ルーム削除ボタン */
+  .room-delete-btn {
+    display: flex !important;
+    opacity: 0.4;
+  }
+
+  /* ボタン波紋はactiveのみ */
+  .btn:hover {
+    transform: none;
+  }
+
+  .btn-primary:hover {
+    background: var(--amber);
+    box-shadow: 0 0 15px rgba(244, 166, 32, 0.3);
+  }
+
+  /* ナビリンクアンダーライン非表示 */
+  .nav-link::after {
+    display: none;
+  }
+}
+
+/* ================================================================
+   16. スクロールインジケータ（チャット等）
+================================================================ */
+
+@media (max-width: 768px) {
+  /* 薄いスクロールバー（モバイル用） */
+  .room-list::-webkit-scrollbar,
+  .messages-container::-webkit-scrollbar,
+  .dm-conv-list::-webkit-scrollbar,
+  .dm-messages::-webkit-scrollbar,
+  .category-filters::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+
+  .room-list::-webkit-scrollbar-thumb,
+  .messages-container::-webkit-scrollbar-thumb,
+  .dm-conv-list::-webkit-scrollbar-thumb,
+  .dm-messages::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 2px;
+  }
+
+  .category-filters::-webkit-scrollbar { display: none; }
+}
+
+/* ================================================================
+   17. ログインページ - スマホ最適化
+================================================================ */
+
+@media (max-width: 480px) {
+  /* ログインカード：上下余白 */
+  .login-page {
+    padding: calc(var(--safe-top) + 16px) 14px calc(var(--safe-bottom) + 16px);
+    min-height: 100dvh;
+  }
+
+  .login-box {
+    padding: 24px 18px !important;
+    border-radius: var(--radius-lg);
+  }
+
+  .login-logo {
+    width: 52px;
+    height: 52px;
+  }
+
+  .login-title {
+    font-size: 1.7rem !important;
+  }
+
+  /* タブボタン高さ確保 */
+  .auth-tab {
+    min-height: 40px;
+    font-size: 0.88rem;
+  }
+
+  /* アバタープレビューコンパクト化 */
+  .avatar-preview {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-box {
+    padding: 18px 14px !important;
+  }
+
+  .auth-tab {
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
+}
+
+/* ================================================================
+   18. ニュースページ - スマホ最適化
+================================================================ */
+
+@media (max-width: 600px) {
+  /* ページヒーロー：コンパクト */
+  .page-hero {
+    padding-top: calc(var(--safe-top) + 68px);
+  }
+
+  /* ニュースアイテムタッチ改善 */
+  .news-item {
+    padding: 12px 12px;
+  }
+
+  /* セクションヘッダー */
+  .section-header {
+    position: sticky;
+    top: 52px;
+    z-index: 10;
+    background: var(--bg-card);
+  }
+
+  /* ステータスバー折り返し防止 */
+  .status-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .status-bar::-webkit-scrollbar { display: none; }
+}
+
+/* ================================================================
+   19. ランダムマッチング - スマホ最適化
+================================================================ */
+
+@media (max-width: 600px) {
+  /* ページトップ余白（fixed header分） */
+  .random-page-wrap,
+  #random-page {
+    padding-top: calc(var(--safe-top) + 60px) !important;
+  }
+}
+
+/* ================================================================
+   20. プロフィールモーダル - スマホ最適化
+================================================================ */
+
+@media (max-width: 600px) {
+  .user-profile-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .user-profile-modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    border-bottom: none !important;
+    padding-bottom: calc(20px + var(--safe-bottom)) !important;
+    max-height: 80dvh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ================================================================
+   21. オーバースクロール制御
+================================================================ */
+
+@media (max-width: 768px) {
+  /* ページ全体のゴムバンド防止 */
+  html {
+    overscroll-behavior: none;
+  }
+
+  /* チャットペインのみ縦スクロール許可 */
+  .messages-container,
+  .room-list,
+  .dm-messages,
+  .dm-conv-list {
+    overscroll-behavior-y: contain;
+  }
+}
+
+/* ================================================================
+   22. 画像・メディア最適化
+================================================================ */
+
+@media (max-width: 600px) {
+  /* チャット画像：横幅フル活用 */
+  .message-image {
+    max-width: min(280px, 70vw);
+    max-height: 220px;
+  }
+
+  /* DM 画像 */
+  .dm-bubble-img {
+    max-width: min(200px, 65vw);
+    max-height: 180px;
+  }
+
+  /* ライトボックス */
+  .lightbox img {
+    max-width: 96vw;
+    max-height: 80dvh;
+  }
+}

@@ -3,13 +3,50 @@
 <head>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>掲示板チャット・コミュニティ交流｜釧路市・釧路町 ─ 釧チャ</title>
   <meta name="description" content="釧路市・釧路町・釧路周辺の住民が集まる掲示板チャット。地域のコミュニティで自由に交流・雑談・情報共有できます。">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://sencha-community.com/chat.html">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <link rel="stylesheet" href="css/chat.css">
+
+<style>
+/* ===== チャット スマホ追加最適化 ===== */
+@media (max-width: 600px) {
+  /* チャットヘッダー: auto-delete-notice を非表示 */
+  .chat-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .chat-room-icon  { font-size: 1.1rem; }
+  .chat-room-name  { font-size: 0.9rem; }
+  .chat-room-desc  { font-size: 0.68rem; }
+  .chat-room-tags  { gap: 3px; }
+
+  /* 入力エリア: タッチ最適化 */
+  .input-area { padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); }
+  .input-row  { padding: 6px 6px 6px 12px; gap: 6px; }
+  .message-textarea { font-size: 16px !important; }
+
+  /* 添付ボタン タッチターゲット確保 */
+  #attach-image-btn { min-width: 40px; min-height: 40px; }
+  .send-btn         { width: 42px; height: 42px; }
+
+  /* ルームヘッダーの右側情報 */
+  .auto-delete-notice { display: none !important; }
+  #online-count       { font-size: 0.7rem; }
+
+  /* サイドバー内の掲示板作成ボタン */
+  .sidebar-section .btn { width: 100%; justify-content: center; }
+}
+@media (max-width: 360px) {
+  .chat-room-name { font-size: 0.84rem; }
+  .input-row      { padding: 5px 5px 5px 10px; }
+  .send-btn       { width: 38px; height: 38px; }
+}
+</style>
 
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>

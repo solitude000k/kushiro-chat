@@ -78,6 +78,12 @@ async function updateDMBadge() {
   if (headerBadge) headerBadge.style.display = unread > 0 ? 'block' : 'none';
   const navBadge = document.getElementById('dm-nav-badge');
   if (navBadge) navBadge.style.display = unread > 0 ? 'block' : 'none';
+  // ボトムナビDMバッジ同期
+  const bnavBadge = document.getElementById('bnav-dm-badge');
+  if (bnavBadge) {
+    if (unread > 0) { bnavBadge.style.display = 'flex'; bnavBadge.textContent = unread > 99 ? '99+' : unread; }
+    else { bnavBadge.style.display = 'none'; }
+  }
   if (menuBadge) {
     if (unread > 0) { menuBadge.style.display = 'inline-flex'; menuBadge.textContent = unread > 99 ? '99+' : unread; }
     else menuBadge.style.display = 'none';

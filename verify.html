@@ -3,9 +3,10 @@
 <head>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>メール確認 ～ 釧チャ</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <style>
     body { overflow: hidden; }
     canvas#star-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
@@ -97,6 +98,24 @@
     .account-badge-name  { font-size: .9rem; color: var(--text-primary); font-weight: 500; }
     .account-badge-email { font-size: .72rem; color: var(--text-muted); }
   </style>
+<style>
+/* ===== verify スマホ最適化 ===== */
+@media (max-width: 480px) {
+  .verify-page {
+    min-height: 100dvh;
+    padding: calc(env(safe-area-inset-top,0px) + 12px) 14px
+             calc(env(safe-area-inset-bottom,0px) + 12px);
+    align-items: flex-start;
+    padding-top: max(env(safe-area-inset-top,0px), 20px);
+  }
+  .verify-card  { padding: 24px 18px; border-radius: var(--radius-lg); }
+  .verify-input { font-size: 16px !important; }
+  .btn          { min-height: 44px; }
+}
+@media (max-width: 360px) {
+  .verify-card  { padding: 18px 14px; }
+}
+</style>
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
 <!-- Google tag (gtag.js) -->

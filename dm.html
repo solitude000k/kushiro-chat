@@ -3,11 +3,40 @@
 <head>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>ダイレクトメッセージ ～ 釧チャ</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mobile.css">
   <link rel="stylesheet" href="css/chat.css">
   <link rel="stylesheet" href="css/dm.css">
+
+<style>
+/* ===== DM スマホ追加最適化 ===== */
+@media (max-width: 640px) {
+  .app-header { padding: 0 10px; }
+  .header-brand-text, .header-brand-sub { display: none; }
+  .header-brand img  { width: 28px; height: 28px; }
+  .header-user-name  { display: none; }
+  .dm-conv-header    { padding: 10px 12px; gap: 10px; }
+  .dm-partner-name   { font-size: 0.9rem; }
+  .dm-partner-id     { font-size: 0.65rem; }
+  .dm-input-area     { padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); }
+  .dm-textarea       { font-size: 16px !important; min-height: 40px; }
+  .dm-send-btn       { min-height: 40px; padding: 8px 12px; }
+  .dm-messages       { padding: 10px 12px; }
+  .dm-bubble         { font-size: 0.84rem; padding: 8px 12px; }
+  .dm-bubble-time    { font-size: 0.62rem; }
+  .dm-conv-item      { padding: 10px 12px; gap: 10px; }
+  .dm-sidebar-header { padding: 14px 14px; font-size: 0.82rem; }
+}
+@media (max-width: 360px) {
+  .dm-partner-name   { font-size: 0.84rem; }
+  .dm-conv-item-name { font-size: 0.72rem; }
+  .dm-conv-item-last { font-size: 0.62rem; }
+  .dm-bubble         { font-size: 0.8rem; }
+  .dm-bubble-wrap    { max-width: 80vw; }
+}
+</style>
 
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9350505956759257" crossorigin="anonymous"></script>
