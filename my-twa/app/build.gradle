@@ -22,10 +22,10 @@ plugins {
 
 def twaManifest = [
     applicationId: 'com.senchacommunity.app',
-    hostName: 'Y', // The domain being opened in the TWA.
+    hostName: 'sencha-community.com', // The domain being opened in the TWA.
     launchUrl: 'https://sencha-community.com/', // The start path for the TWA. Must be relative to the domain.
-    name: 'Y', // The application name.
-    launcherName: 'Y', // The name shown on the Android Launcher.
+    name: '釧路コミュニティチャット', // The application name.
+    launcherName: '釧路チャット', // The name shown on the Android Launcher.
     themeColor: '#1A237E', // The color used for the status bar.
     themeColorDark: '#000000', // The color used for the dark status bar.
     navigationColor: '#000000', // The color used for the navigation bar.

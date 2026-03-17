@@ -1,8 +1,8 @@
 {
   "packageId": "com.senchacommunity.app",
-  "host": "Y",
-  "name": "Y",
-  "launcherName": "Y",
+  "host": "sencha-community.com",
+  "name": "釧路コミュニティチャット",
+  "launcherName": "釧路チャット",
   "display": "standalone",
   "themeColor": "#1A237E",
   "themeColorDark": "#000000",
