@@ -17,7 +17,7 @@
   "monochromeIconUrl": "https://sencha-community.com/icon-mono-48.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "C:\\Users\\solit\\Desktop\\Webサイト\\釧路チャットサイト\\my-twa\\android.keystore",
+    "path": "C:\\Users\\solit\\Desktop\\Web\\sencha-community\\my-twa\\android.keystore",
     "alias": "android"
   },
   "appVersionName": "1",
