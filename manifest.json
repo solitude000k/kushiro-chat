@@ -18,10 +18,3 @@
     }
   ]
 }
-```
-
-#### ② サーバーのルートに設置
-```
-https://sencha-community.com/manifest.json  ← ここに設置
-https://sencha-community.com/icon-192.png   ← アイコンも設置
-https://sencha-community.com/icon-512.png   ← アイコンも設置
