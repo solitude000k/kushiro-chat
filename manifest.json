@@ -19,12 +19,3 @@
     }
   ]
 }
-```
-
----
-
-## 保存後に確認
-
-ブラウザで以下を開いて、JSONが正しく表示されることを確認してください：
-```
-https://sencha-community.com/manifest.json
