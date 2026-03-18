@@ -710,6 +710,7 @@
   .app-layout {
     grid-template-columns: 1fr;
     grid-template-rows: 60px 1fr;
+    max-height: 100vh;
     overflow: hidden;
   }
   .sidebar {

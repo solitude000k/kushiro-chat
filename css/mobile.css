@@ -756,49 +756,28 @@ html, body {
    24. chat / dm ページ用ボトムナビ対応レイアウト調整
 ================================================================ */
 @media (max-width: 768px) {
-  /* ===== 根本解決: body を flex 縦並びにして app-layout + ボトムナビを積む =====
-     高さ計算不要 - app-layout が残り全スペースを自動で使う */
-  html.chat-page {
-    height: 100dvh;
-  }
-  html.chat-page body {
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  /* ===== 確実な解決法 =====
+     app-layout に padding-bottom でボトムナビ分の空間を作る。
+     box-sizing:border-box により総高さは 100dvh のまま。
+     overflow:hidden 環境でも動作し、fixed なボトムナビがその空間に収まる */
   .app-layout {
-    flex: 1 !important;
-    min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
-  }
-  /* ボトムナビを fixed から通常フローに戻す（chat/dm ページのみ） */
-  html.chat-page body .mobile-bottom-nav,
-  html.dm-page body .mobile-bottom-nav {
-    position: relative !important;
-    flex-shrink: 0;
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding-bottom: var(--bottom-nav-total) !important;
+    box-sizing: border-box !important;
   }
 
   /* DM レイアウトも同様 */
   .dm-layout {
-    flex: 1 !important;
-    min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding-bottom: var(--bottom-nav-total) !important;
+    box-sizing: border-box !important;
   }
 
-  /* DM body も flex 縦並び */
-  html.dm-page {
-    height: 100dvh;
-  }
+  /* ボトムナビは fixed のまま維持（全ページで表示される） */
+  html.chat-page body,
   html.dm-page body {
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
   }
 
