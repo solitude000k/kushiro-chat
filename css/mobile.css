@@ -770,14 +770,14 @@ html, body {
   .chat-page-wrapper .app-layout {
     flex: 1 !important;
     min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
+    height: 100% !important;
+    max-height: 100% !important;
   }
   .chat-page-wrapper .dm-layout {
     flex: 1 !important;
     min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
+    height: 100% !important;
+    max-height: 100% !important;
   }
 
   /* wrapper 内のボトムナビは sticky で底に固定 */

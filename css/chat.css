@@ -14,6 +14,12 @@
   z-index: 1;
 }
 
+/* chat-page-wrapper 内では wrapper が高さを管理するので auto に */
+.chat-page-wrapper .app-layout {
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
 /* ---- Top Header ---- */
 .app-header {
   grid-column: 1 / -1;
@@ -710,7 +716,6 @@
   .app-layout {
     grid-template-columns: 1fr;
     grid-template-rows: 60px 1fr;
-    max-height: 100vh;
     overflow: hidden;
   }
   .sidebar {
