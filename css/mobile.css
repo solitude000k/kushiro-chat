@@ -773,8 +773,9 @@ html, body {
     height: auto !important;
     max-height: none !important;
   }
-  /* ボトムナビを fixed から通常フローに戻す */
-  .mobile-bottom-nav {
+  /* ボトムナビを fixed から通常フローに戻す（chat/dm ページのみ） */
+  html.chat-page body .mobile-bottom-nav,
+  html.dm-page body .mobile-bottom-nav {
     position: relative !important;
     flex-shrink: 0;
     bottom: auto !important;
