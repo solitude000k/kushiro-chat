@@ -756,29 +756,29 @@ html, body {
    24. chat / dm ページ用ボトムナビ対応レイアウト調整
 ================================================================ */
 @media (max-width: 768px) {
-  /* ===== 確実な解決法 =====
-     app-layout に padding-bottom でボトムナビ分の空間を作る。
-     box-sizing:border-box により総高さは 100dvh のまま。
-     overflow:hidden 環境でも動作し、fixed なボトムナビがその空間に収まる */
+  /* chat-area 自体にボトムナビ分のpaddingを入れる
+     flex column の中で padding-bottom が効き、input-area が押し上げられる */
+  .chat-area {
+    padding-bottom: var(--bottom-nav-total) !important;
+    box-sizing: border-box !important;
+  }
+
+  /* DM の会話エリアも同様 */
+  .dm-conv-area {
+    padding-bottom: var(--bottom-nav-total) !important;
+    box-sizing: border-box !important;
+  }
+
+  /* app-layout / dm-layout の高さはシンプルに100dvhのまま */
   .app-layout {
     height: 100dvh !important;
     max-height: 100dvh !important;
-    padding-bottom: var(--bottom-nav-total) !important;
-    box-sizing: border-box !important;
+    padding-bottom: 0 !important;
   }
-
-  /* DM レイアウトも同様 */
   .dm-layout {
     height: 100dvh !important;
     max-height: 100dvh !important;
-    padding-bottom: var(--bottom-nav-total) !important;
-    box-sizing: border-box !important;
-  }
-
-  /* ボトムナビは fixed のまま維持（全ページで表示される） */
-  html.chat-page body,
-  html.dm-page body {
-    overflow: hidden;
+    padding-bottom: 0 !important;
   }
 
   .input-area    { padding-bottom: 0 !important; }
