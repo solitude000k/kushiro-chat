@@ -782,12 +782,14 @@ html, body {
 
   /* wrapper 内のボトムナビは fixed をやめてフロー内に */
   .chat-page-wrapper .mobile-bottom-nav {
+    display: flex !important;
     position: relative !important;
     flex-shrink: 0 !important;
     bottom: auto !important;
     left: auto !important;
     right: auto !important;
     width: 100% !important;
+    height: var(--bottom-nav-h) !important;
     z-index: 300;
   }
 
