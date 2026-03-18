@@ -222,9 +222,9 @@ html, body {
     max-height: 100dvh;
   }
 
-  /* DM 入力エリア：ホームバー */
+  /* DM 入力エリア */
   .dm-input-area {
-    padding-bottom: calc(12px + var(--safe-bottom));
+    padding-bottom: 12px;
   }
 
   /* DM textarea フォントサイズ */
