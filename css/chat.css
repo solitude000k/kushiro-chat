@@ -789,15 +789,10 @@
 
 /* ---- 72時間自動削除注意書き ---- */
 .auto-delete-notice-mobile { display: none; }
-@media (max-width: 600px) {
-  .auto-delete-notice { display: none; }
-  .auto-delete-notice-mobile {
-    display: block;
-    text-align: center;
-    font-size: 0.62rem;
-    color: var(--text-muted);
-    opacity: 0.6;
-  }
+@media (max-width: 768px) {
+  /* ボトムナビあり環境では注意書き非表示 */
+  .auto-delete-notice        { display: none !important; }
+  .auto-delete-notice-mobile { display: none !important; }
 }
 /* ---- ↓最新ボタン ---- */
 #jump-to-latest {

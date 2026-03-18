@@ -190,7 +190,10 @@ async function selectRoom(roomId) {
   document.getElementById('no-room-state').classList.add('hidden');
   const msgInput = document.getElementById('message-input');
   msgInput.disabled = false;
-  msgInput.focus();
+  // スマホでは仮想キーボードが自動で開くのを防ぐ
+  if (window.innerWidth > 768) {
+    msgInput.focus();
+  }
 
   await refreshMessages();
 }
@@ -546,6 +549,11 @@ function setupEventListeners() {
   window.closeSidebar = function closeSidebar() { sidebar?.classList.remove('mobile-open'); sidebarOverlay?.classList.remove('active'); }
   sidebarToggle?.addEventListener('click', e => { e.stopPropagation(); sidebar?.classList.contains('mobile-open') ? closeSidebar() : openSidebar(); });
   sidebarOverlay?.addEventListener('click', closeSidebar);
+
+  // スマホでは初回ロード時にサイドバーを自動で開く
+  if (window.innerWidth <= 768) {
+    openSidebar();
+  }
 
   // ヘッダー ドロップダウン
   const trigger  = document.getElementById('user-menu-trigger');
