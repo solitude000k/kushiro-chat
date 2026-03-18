@@ -790,9 +790,19 @@
 /* ---- 72時間自動削除注意書き ---- */
 .auto-delete-notice-mobile { display: none; }
 @media (max-width: 768px) {
-  /* ボトムナビあり環境では注意書き非表示 */
-  .auto-delete-notice        { display: none !important; }
-  .auto-delete-notice-mobile { display: none !important; }
+  .auto-delete-notice { display: none !important; }
+  /* 注意書きを表示・入力エリア下余白をゼロに */
+  .auto-delete-notice-mobile {
+    display: block;
+    text-align: center;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    padding: 4px 0 0;
+  }
+  .input-area {
+    padding-bottom: 0 !important;
+  }
 }
 /* ---- ↓最新ボタン ---- */
 #jump-to-latest {
