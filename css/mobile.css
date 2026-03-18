@@ -379,8 +379,7 @@ html, body {
   /* ボトムナビ分の余白 */
   .news-layout,
   .page-content,
-  .random-layout,
-  main {
+  .random-layout {
     padding-bottom: calc(var(--bottom-nav-total) + 16px);
   }
 
