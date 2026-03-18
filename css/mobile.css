@@ -756,25 +756,29 @@ html, body {
    24. chat / dm ページ用ボトムナビ対応レイアウト調整
 ================================================================ */
 @media (max-width: 768px) {
-  /* app-layout の高さをボトムナビ＋余白分だけ縮める */
-  .app-layout {
-    height: calc(100dvh - var(--bottom-nav-total) - 72px) !important;
-    max-height: calc(100dvh - var(--bottom-nav-total) - 72px) !important;
+  /* bodyにボトムナビ分のpadding-bottomを与え、app-layoutはbodyに追従させる
+     これにより端末の高さに関わらず正確にレイアウトが決まる */
+  html.chat-page {
+    height: 100dvh;
   }
-
-  /* chat-page html/body もボトムナビ分を除いた高さに */
-  html.chat-page,
   html.chat-page body {
-    height: calc(100dvh - var(--bottom-nav-total) - 72px);
+    height: 100%;
+    padding-bottom: var(--bottom-nav-total);
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .app-layout {
+    height: 100% !important;
+    max-height: 100% !important;
   }
 
-  /* DM レイアウトも同様 */
+  /* DM ページ（html.chat-pageクラスなし）は dm-layout 自体を縮める */
   .dm-layout {
-    height: calc(100dvh - var(--bottom-nav-total) - 72px) !important;
-    max-height: calc(100dvh - var(--bottom-nav-total) - 72px) !important;
+    height: calc(100dvh - var(--bottom-nav-total)) !important;
+    max-height: calc(100dvh - var(--bottom-nav-total)) !important;
   }
 
-  /* input-area の padding-bottom はリセット（overflow:hidden 親内でクリップされるため） */
+  /* input-area の padding-bottom はリセット */
   .input-area    { padding-bottom: 0 !important; }
   .dm-input-area { padding-bottom: 0 !important; }
 }
