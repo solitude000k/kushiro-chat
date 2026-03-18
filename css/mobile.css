@@ -190,11 +190,6 @@ html, body {
     height: 100dvh;
   }
 
-  /* チャット入力エリア：ホームバー分の余白 */
-  .input-area {
-    padding-bottom: calc(16px + var(--safe-bottom));
-  }
-
   /* チャット入力欄フォントサイズ（iOSズーム防止） */
   .message-textarea {
     font-size: 16px !important;

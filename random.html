@@ -645,6 +645,20 @@ async function loadStatus() {
     const data = await API.getRandomStatus();
     if (data.ok) {
       applyToggleUI(data.randomChat);
+<<<<<<< HEAD
+    } else if (data.error && (data.error.includes('認証') || data.error.includes('auth'))) {
+      // セッション切れ → ログイン画面へ
+      console.warn('[random] session expired, redirecting to login');
+      Storage.Session.clear();
+      window.location.href = 'login.html';
+    } else {
+      console.warn('[random] status error:', data.error);
+      applyToggleUI(false);
+      toggleSubText.textContent = data.error || '状態の取得に失敗しました';
+    }
+  } catch(e) {
+    console.error('[random] loadStatus failed:', e);
+=======
     } else {
       // サーバーがエラーを返した場合もUIを有効化（デフォルトOFF）
       console.warn('[random] status error:', data.error);
@@ -654,6 +668,7 @@ async function loadStatus() {
   } catch(e) {
     console.error('[random] loadStatus failed:', e);
     // 通信失敗時もUIを有効化してユーザーが操作できるように
+>>>>>>> af495908514a4e3a5ce341203122d74f8ca79308
     applyToggleUI(false);
     toggleSubText.textContent = '状態の取得に失敗しました';
   }
@@ -674,9 +689,13 @@ toggleInput.addEventListener('change', async () => {
     if (data.ok) {
       applyToggleUI(data.randomChat);
       showToast(data.randomChat ? 'ランダムチャットをONにしました' : 'ランダムチャットをOFFにしました', data.randomChat ? 'success' : 'info');
+    } else if (data.error && (data.error.includes('認証') || data.error.includes('auth'))) {
+      // セッション切れ → ログイン画面へ
+      Storage.Session.clear();
+      window.location.href = 'login.html';
     } else {
       showToast(data.error || '切り替えに失敗しました', 'error');
-      toggleInput.checked = !toggleInput.checked; // 元に戻す
+      toggleInput.checked = !toggleInput.checked;
     }
   } catch(e) {
     showToast('通信エラーが発生しました', 'error');
