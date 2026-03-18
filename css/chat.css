@@ -710,7 +710,7 @@
   .app-layout {
     grid-template-columns: 1fr;
     grid-template-rows: 60px 1fr;
-    max-height: 100vh;
+    max-height: calc(100dvh - var(--bottom-nav-total));
     overflow: hidden;
   }
   .sidebar {

@@ -756,29 +756,33 @@ html, body {
    24. chat / dm ページ用ボトムナビ対応レイアウト調整
 ================================================================ */
 @media (max-width: 768px) {
-  /* bodyにボトムナビ分のpadding-bottomを与え、app-layoutはbodyに追従させる
-     これにより端末の高さに関わらず正確にレイアウトが決まる */
-  html.chat-page {
-    height: 100dvh;
+  /* ボトムナビ分を直接app-layoutの高さから引く
+     body の overflow:hidden 環境でも確実に動作する */
+  .app-layout {
+    height: calc(100dvh - var(--bottom-nav-total)) !important;
+    max-height: calc(100dvh - var(--bottom-nav-total)) !important;
   }
+  html.chat-page,
   html.chat-page body {
-    height: 100%;
-    padding-bottom: var(--bottom-nav-total);
-    box-sizing: border-box;
+    height: calc(100dvh - var(--bottom-nav-total));
     overflow: hidden;
   }
-  .app-layout {
-    height: 100% !important;
-    max-height: 100% !important;
-  }
-
-  /* DM ページ（html.chat-pageクラスなし）は dm-layout 自体を縮める */
   .dm-layout {
     height: calc(100dvh - var(--bottom-nav-total)) !important;
     max-height: calc(100dvh - var(--bottom-nav-total)) !important;
   }
-
-  /* input-area の padding-bottom はリセット */
   .input-area    { padding-bottom: 0 !important; }
   .dm-input-area { padding-bottom: 0 !important; }
+}
+
+/* 600px以下でも確実に上書き（chat.css の app-layout ルールより後に適用） */
+@media (max-width: 600px) {
+  .app-layout {
+    height: calc(100dvh - var(--bottom-nav-total)) !important;
+    max-height: calc(100dvh - var(--bottom-nav-total)) !important;
+  }
+  html.chat-page,
+  html.chat-page body {
+    height: calc(100dvh - var(--bottom-nav-total));
+  }
 }
