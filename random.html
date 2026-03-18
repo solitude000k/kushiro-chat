@@ -642,13 +642,23 @@ const startBtn      = document.getElementById('start-btn');
 
 async function loadStatus() {
   try {
-    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/status', {
-      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
-    });
-    const data = await res.json();
-    if (data.ok) applyToggleUI(data.randomChat);
+    const data = await API.getRandomStatus();
+    if (data.ok) {
+      applyToggleUI(data.randomChat);
+    } else if (data.error && (data.error.includes('認証') || data.error.includes('auth'))) {
+      // セッション切れ → ログイン画面へ
+      console.warn('[random] session expired, redirecting to login');
+      Storage.Session.clear();
+      window.location.href = 'login.html';
+    } else {
+      console.warn('[random] status error:', data.error);
+      applyToggleUI(false);
+      toggleSubText.textContent = data.error || '状態の取得に失敗しました';
+    }
   } catch(e) {
-    toggleSubText.textContent = '取得失敗';
+    console.error('[random] loadStatus failed:', e);
+    applyToggleUI(false);
+    toggleSubText.textContent = '状態の取得に失敗しました';
   }
 }
 
@@ -663,17 +673,17 @@ toggleInput.addEventListener('change', async () => {
   toggleInput.disabled = true;
   startBtn.disabled = true;
   try {
-    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/toggle', {
-      method: 'POST',
-      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
-    });
-    const data = await res.json();
+    const data = await API.toggleRandom();
     if (data.ok) {
       applyToggleUI(data.randomChat);
       showToast(data.randomChat ? 'ランダムチャットをONにしました' : 'ランダムチャットをOFFにしました', data.randomChat ? 'success' : 'info');
+    } else if (data.error && (data.error.includes('認証') || data.error.includes('auth'))) {
+      // セッション切れ → ログイン画面へ
+      Storage.Session.clear();
+      window.location.href = 'login.html';
     } else {
       showToast(data.error || '切り替えに失敗しました', 'error');
-      toggleInput.checked = !toggleInput.checked; // 元に戻す
+      toggleInput.checked = !toggleInput.checked;
     }
   } catch(e) {
     showToast('通信エラーが発生しました', 'error');
@@ -759,11 +769,7 @@ adProceedBtn.addEventListener('click', async () => {
   resultEl.style.display = 'none';
 
   try {
-    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/start', {
-      method: 'POST',
-      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
-    });
-    const data = await res.json();
+    const data = await API.startRandom();
 
     if (data.ok) {
       const m = data.matched;
