@@ -756,22 +756,22 @@ html, body {
    24. chat / dm ページ用ボトムナビ対応レイアウト調整
 ================================================================ */
 @media (max-width: 768px) {
-  /* app-layout の高さをボトムナビ分だけ縮める（入力欄が埋まらないように） */
+  /* app-layout の高さをボトムナビ＋余白分だけ縮める */
   .app-layout {
-    height: calc(100dvh - var(--bottom-nav-total)) !important;
-    max-height: calc(100dvh - var(--bottom-nav-total)) !important;
+    height: calc(100dvh - var(--bottom-nav-total) - 8px) !important;
+    max-height: calc(100dvh - var(--bottom-nav-total) - 8px) !important;
   }
 
   /* chat-page html/body もボトムナビ分を除いた高さに */
   html.chat-page,
   html.chat-page body {
-    height: calc(100dvh - var(--bottom-nav-total));
+    height: calc(100dvh - var(--bottom-nav-total) - 8px);
   }
 
   /* DM レイアウトも同様 */
   .dm-layout {
-    height: calc(100dvh - var(--bottom-nav-total)) !important;
-    max-height: calc(100dvh - var(--bottom-nav-total)) !important;
+    height: calc(100dvh - var(--bottom-nav-total) - 8px) !important;
+    max-height: calc(100dvh - var(--bottom-nav-total) - 8px) !important;
   }
 
   /* input-area の padding-bottom はリセット（overflow:hidden 親内でクリップされるため） */
