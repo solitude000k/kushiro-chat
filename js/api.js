@@ -145,6 +145,21 @@ const API = (() => {
   }
 
   // ================================================================
+  // ランダムチャット
+  // ================================================================
+  async function getRandomStatus() {
+    return req('GET', '/api/random/status');
+  }
+
+  async function toggleRandom() {
+    return req('POST', '/api/random/toggle');
+  }
+
+  async function startRandom() {
+    return req('POST', '/api/random/start');
+  }
+
+  // ================================================================
   // 管理者アクション (パスワード再認証付き)
   // ================================================================
 
@@ -231,6 +246,7 @@ const API = (() => {
     listMessages, postMessage, deleteMessage, adminDeleteMessage,
     getDMConversations, getDMThread, sendDM, markDMRead, deleteDM, adminListDMs,
     getPublicProfile,
+    getRandomStatus, toggleRandom, startRandom,
   };
 })();
 

@@ -642,13 +642,20 @@ const startBtn      = document.getElementById('start-btn');
 
 async function loadStatus() {
   try {
-    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/status', {
-      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
-    });
-    const data = await res.json();
-    if (data.ok) applyToggleUI(data.randomChat);
+    const data = await API.getRandomStatus();
+    if (data.ok) {
+      applyToggleUI(data.randomChat);
+    } else {
+      // サーバーがエラーを返した場合もUIを有効化（デフォルトOFF）
+      console.warn('[random] status error:', data.error);
+      applyToggleUI(false);
+      if (data.error) showToast(data.error, 'error');
+    }
   } catch(e) {
-    toggleSubText.textContent = '取得失敗';
+    console.error('[random] loadStatus failed:', e);
+    // 通信失敗時もUIを有効化してユーザーが操作できるように
+    applyToggleUI(false);
+    toggleSubText.textContent = '状態の取得に失敗しました';
   }
 }
 
@@ -663,11 +670,7 @@ toggleInput.addEventListener('change', async () => {
   toggleInput.disabled = true;
   startBtn.disabled = true;
   try {
-    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/toggle', {
-      method: 'POST',
-      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
-    });
-    const data = await res.json();
+    const data = await API.toggleRandom();
     if (data.ok) {
       applyToggleUI(data.randomChat);
       showToast(data.randomChat ? 'ランダムチャットをONにしました' : 'ランダムチャットをOFFにしました', data.randomChat ? 'success' : 'info');
@@ -759,11 +762,7 @@ adProceedBtn.addEventListener('click', async () => {
   resultEl.style.display = 'none';
 
   try {
-    const res  = await fetch(window.KUSHIRO_API_BASE + '/api/random/start', {
-      method: 'POST',
-      headers: { 'X-Session-Token': currentUser.sessionToken, 'X-API-Secret': window.KUSHIRO_API_SECRET }
-    });
-    const data = await res.json();
+    const data = await API.startRandom();
 
     if (data.ok) {
       const m = data.matched;

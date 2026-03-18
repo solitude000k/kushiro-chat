@@ -745,3 +745,38 @@ html, body {
     max-height: 80dvh;
   }
 }
+
+/* ================================================================
+   23. ヘッダー上部ナビリンク - スマホでは非表示（ボトムナビに統合）
+================================================================ */
+@media (max-width: 768px) {
+  /* すべてのページの上部ナビゲーションリンクを非表示 */
+  .app-header nav,
+  .top-header nav,
+  header nav {
+    display: none !important;
+  }
+}
+
+/* ================================================================
+   24. chat / dm ページ用ボトムナビ対応レイアウト調整
+================================================================ */
+@media (max-width: 768px) {
+  /* app-layout の高さをボトムナビ分だけ縮める */
+  .app-layout {
+    height: calc(100dvh - var(--bottom-nav-total)) !important;
+    max-height: calc(100dvh - var(--bottom-nav-total)) !important;
+  }
+
+  /* chat-page の html/body もボトムナビ分を除いた高さに */
+  html.chat-page,
+  html.chat-page body {
+    height: calc(100dvh - var(--bottom-nav-total));
+  }
+
+  /* DM レイアウトも同様 */
+  .dm-layout {
+    height: calc(100dvh - var(--bottom-nav-total)) !important;
+    max-height: calc(100dvh - var(--bottom-nav-total)) !important;
+  }
+}
