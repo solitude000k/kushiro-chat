@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.senchacommunity.app",
+    "sha256_cert_fingerprints": [
+      "F3:2D:2F:6D:37:D2:0A:63:D0:33:29:15:58:96:B8:0D:DB:C8:01:4F:0C:F3:2C:5E:2F:53:1F:99:A4:BF:51:1B"
+    ]
+  }
+}]
