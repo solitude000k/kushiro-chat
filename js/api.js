@@ -28,6 +28,12 @@ const API = (() => {
     try {
       const res  = await fetch(B() + path, opts);
       const data = await res.json();
+      // 401: セッション切れ → ログインページへリダイレクト
+      if (res.status === 401 && !location.pathname.endsWith('login.html') && !location.pathname.endsWith('verify.html')) {
+        Storage.Session.clear();
+        location.href = 'login.html';
+        return data;
+      }
       return data;
     } catch (err) {
       console.error('[API Error]', method, path, err);

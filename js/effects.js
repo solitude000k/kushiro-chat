@@ -248,22 +248,37 @@
       return el;
     }
 
+    let consecutiveErrors = 0;
+
     async function checkUnread() {
       try {
         const res = await fetch(`${API_BASE}/api/dms/conversations`, {
-          headers: { 'X-Session-Token': sess.sessionToken, 'X-Api-Secret': window.KUSHIRO_API_SECRET || '' },
+          headers: {
+            'X-Session-Token': sess.sessionToken,
+            'X-API-Secret': window.KUSHIRO_API_SECRET || '',
+          },
         });
+        // 500系はWorker障害 → エラーカウントして一定回数でポーリング停止
+        if (res.status >= 500) {
+          consecutiveErrors++;
+          if (consecutiveErrors >= 3) clearInterval(unreadTimer);
+          return;
+        }
+        consecutiveErrors = 0;
         if (!res.ok) return;
         const data = await res.json();
         const hasUnread = (data.conversations || []).some(c => c.unread > 0);
         const el = ensureBadgeEl();
         if (el) el.style.display = hasUnread ? 'block' : 'none';
-      } catch {}
+      } catch {
+        consecutiveErrors++;
+        if (consecutiveErrors >= 3) clearInterval(unreadTimer);
+      }
     }
 
     // 初回即時チェック → 30秒ごとにポーリング
     checkUnread();
-    setInterval(checkUnread, 30000);
+    const unreadTimer = setInterval(checkUnread, 30000);
   }
 
   /* ============================================================
