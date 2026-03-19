@@ -762,8 +762,12 @@ html, body {
   .chat-page-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100dvh;
-    /* overflow:hidden を外す → sticky/relative どちらでも確実に表示 */
+    /* position:fixed + inset:0 が最も確実 - dvh/vh の端末差を完全に排除 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
   }
 
   /* app-layout / dm-layout は残り全高を使う */
