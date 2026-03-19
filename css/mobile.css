@@ -763,7 +763,7 @@ html, body {
     display: flex;
     flex-direction: column;
     height: 100dvh;
-    overflow: hidden;
+    /* overflow:hidden を外す → sticky/relative どちらでも確実に表示 */
   }
 
   /* app-layout / dm-layout は残り全高を使う */
@@ -772,22 +772,24 @@ html, body {
     min-height: 0 !important;
     height: 100% !important;
     max-height: 100% !important;
+    overflow: hidden;
   }
   .chat-page-wrapper .dm-layout {
     flex: 1 !important;
     min-height: 0 !important;
     height: 100% !important;
     max-height: 100% !important;
+    overflow: hidden;
   }
 
-  /* wrapper 内のボトムナビは sticky で底に固定 */
+  /* wrapper 内のボトムナビは relative でフロー末尾に固定 */
   .chat-page-wrapper .mobile-bottom-nav {
     display: flex !important;
-    position: sticky !important;
-    bottom: 0 !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+    bottom: auto !important;
     left: auto !important;
     right: auto !important;
-    flex-shrink: 0 !important;
     width: 100% !important;
     height: var(--bottom-nav-h) !important;
     z-index: 300;
