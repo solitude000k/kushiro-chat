@@ -150,6 +150,10 @@ const API = (() => {
     return req('GET', '/api/admin/dms');
   }
 
+  async function adminClearRoomMessages(roomId) {
+    return req('DELETE', `/api/admin/messages?roomId=${encodeURIComponent(roomId)}`, undefined, true);
+  }
+
   // ================================================================
   // ランダムチャット
   // ================================================================
@@ -250,7 +254,7 @@ const API = (() => {
     getMyAccount, checkUserId, listAccounts, lookupAccount, updateAccount, deleteAccount, adminDeleteAccount, adminSetup,
     listRooms, createRoom, deleteRoom,
     listMessages, postMessage, deleteMessage, adminDeleteMessage,
-    getDMConversations, getDMThread, sendDM, markDMRead, deleteDM, adminListDMs,
+    getDMConversations, getDMThread, sendDM, markDMRead, deleteDM, adminListDMs, adminClearRoomMessages,
     getPublicProfile,
     getRandomStatus, toggleRandom, startRandom,
   };
